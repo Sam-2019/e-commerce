@@ -1,2 +1,1 @@
-"# e-commerce" 
-simple backend for an online bookshop
+# simple backend for an online bookshop
