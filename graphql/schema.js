@@ -19,7 +19,7 @@ const ProductType = new GraphQLObjectType({
     name: { type: GraphQLString },
     sku: { type: GraphQLString },
     price: { type: GraphQLString },
-    image: { type: GraphQLString },
+    imageURL: { type: GraphQLString },
     quantity: { type: GraphQLInt },
   }),
 });
@@ -94,19 +94,19 @@ const RootMutation = new GraphQLObjectType({
         price: {
           type: new GraphQLNonNull(GraphQLString),
         },
-        image: {
+        imageURL: {
           type: new GraphQLNonNull(GraphQLString),
         },
         quantity: {
           type: new GraphQLNonNull(GraphQLInt),
         },
       },
-      resolve(parentValue, { name, sku, price, image, quantity }) {
+      resolve(parentValue, { name, sku, price, imageURL, quantity }) {
         var product = new ProductSchema({
           name,
           sku,
           price,
-          image,
+          imageURL,
           quantity,
         });
 
@@ -130,20 +130,20 @@ const RootMutation = new GraphQLObjectType({
         price: {
           type: GraphQLString,
         },
-        image: {
+        imageURL: {
           type: GraphQLString,
         },
         quantity: {
           type: GraphQLInt,
         },
       },
-      resolve(parentValue, { id, name, sku, price, image, quantity }) {
+      resolve(parentValue, { id, name, sku, price, imageURL, quantity }) {
         return ProductType.updateOne(
           { _id: id },
           { $set: { name } },
           { $set: { sku } },
           { $set: { price } },
-          { $set: { image } },
+          { $set: { imageURL } },
           { $set: { quantity } }
         );
       },
