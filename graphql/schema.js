@@ -12,7 +12,7 @@ const {
 const ProductSchema = require("../db/schema/product");
 
 const ProductType = new GraphQLObjectType({
-  name: "UserType",
+  name: "ProductType",
   fields: () => ({
     id: { type: GraphQLID },
     name: { type: GraphQLString },
