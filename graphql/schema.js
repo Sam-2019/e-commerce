@@ -11,6 +11,8 @@ const {
 
 const ProductSchema = require("../db/schema/product");
 const UserSchema = require("../db/schema/user");
+const CartSchema = require("../db/schema/cart");
+const OrderSchema = require("../db/schema/order");
 
 const ProductType = new GraphQLObjectType({
   name: "ProductType",
@@ -34,6 +36,24 @@ const UserType = new GraphQLObjectType({
     last_name: { type: GraphQLString },
     email: { type: GraphQLString },
     phone_number: { type: GraphQLString },
+  }),
+});
+
+const CartType = new GraphQLObjectType({
+  name: "CartType",
+  fields: () => ({
+    id: { type: GraphQLID },
+    user: { type: UserType },
+    products: { type: ProductType },
+  }),
+});
+
+const OrderType = new GraphQLObjectType({
+  name: "OrderType",
+  fields: () => ({
+    id: { type: GraphQLID },
+    user: { type: UserType },
+    products: { type: ProductType },
   }),
 });
 
@@ -75,6 +95,44 @@ const RootQuery = new GraphQLObjectType({
       },
       resolve(parentValue, { id }) {
         return UserSchema.findById(id);
+      },
+    },
+
+    carts: {
+      type: new GraphQLList(CartType),
+      resolve(parentValue, args) {
+        return CartSchema.find();
+      },
+    },
+
+    cart: {
+      type: CartType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        return CartSchema.findById(id);
+      },
+    },
+
+    orders: {
+      type: new GraphQLList(OrderType),
+      resolve(parentValue, args) {
+        return OrderSchema.find();
+      },
+    },
+
+    order: {
+      type: OrderType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        return OrderSchema.findById(id);
       },
     },
   }),
@@ -252,6 +310,48 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve(parentValue, { id }) {
         return UserSchema.findByIdAndDelete(id);
+      },
+    },
+
+    addCart: {
+      type: CartType,
+      args: {
+        user: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+        product: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve(parentValue, { user, product }) {
+        var cart = new CartSchema({
+          user,
+          product,
+        });
+
+        cart.save();
+        return cart;
+      },
+    },
+
+    addOrder: {
+      type: OrderType,
+      args: {
+        user: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+        product: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve(parentValue, { user, product }) {
+        var order = new OrderSchema({
+          user,
+          product,
+        });
+
+        order.save();
+        return order;
       },
     },
   },
