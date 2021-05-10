@@ -311,14 +311,19 @@ const RootMutation = new GraphQLObjectType({
       ) {
         const find = UserSchema.updateOne(
           { _id: id },
-          { $set: { username } },
-          { $set: { password } },
-          { $set: { first_name } },
-          { $set: { last_name } },
-          { $set: { email } },
-          { $set: { phone_number } }
+          {
+            $set: {
+              username,
+              password,
+              first_name,
+              last_name,
+              email,
+              phone_number,
+            },
+          },
+          { omitUndefined: false }
         );
-        console.log(find);
+        return find;
       },
     },
 
