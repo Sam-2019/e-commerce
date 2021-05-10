@@ -20,9 +20,11 @@ const ProductType = new GraphQLObjectType({
     id: { type: GraphQLID },
     name: { type: GraphQLString },
     sku: { type: GraphQLString },
+    author: { type: GraphQLString },
     price: { type: GraphQLString },
     imageURL: { type: GraphQLString },
     quantity: { type: GraphQLInt },
+    detail: { type: GraphQLString },
   }),
 });
 
@@ -150,6 +152,9 @@ const RootMutation = new GraphQLObjectType({
         sku: {
           type: new GraphQLNonNull(GraphQLString),
         },
+        author: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
         price: {
           type: new GraphQLNonNull(GraphQLString),
         },
@@ -159,14 +164,22 @@ const RootMutation = new GraphQLObjectType({
         quantity: {
           type: new GraphQLNonNull(GraphQLInt),
         },
+        detail: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
       },
-      resolve(parentValue, { name, sku, price, imageURL, quantity }) {
+      resolve(
+        parentValue,
+        { name, author, sku, price, imageURL, quantity, detail }
+      ) {
         var product = new ProductSchema({
           name,
+          author,
           sku,
           price,
           imageURL,
           quantity,
+          detail,
         });
 
         product.save();
@@ -183,6 +196,9 @@ const RootMutation = new GraphQLObjectType({
         name: {
           type: GraphQLString,
         },
+        author: {
+          type: GraphQLString,
+        },
         sku: {
           type: GraphQLString,
         },
@@ -195,16 +211,20 @@ const RootMutation = new GraphQLObjectType({
         quantity: {
           type: GraphQLInt,
         },
+        detail: {
+          type: GraphQLString,
+        },
       },
-      resolve(parentValue, { id, name, sku, price, imageURL, quantity }) {
-        return ProductType.updateOne(
+      resolve(
+        parentValue,
+        { id, name, author, sku, price, imageURL, quantity, detail }
+      ) {
+        const find = ProductSchema.findOneAndUpdate(
           { _id: id },
-          { $set: { name } },
-          { $set: { sku } },
-          { $set: { price } },
-          { $set: { imageURL } },
-          { $set: { quantity } }
+          { $set: { name, author, sku, price, imageURL, quantity, detail } },
+          { omitUndefined: false }
         );
+        return find;
       },
     },
 
@@ -289,7 +309,7 @@ const RootMutation = new GraphQLObjectType({
         parentValue,
         { id, username, password, first_name, last_name, email, phone_number }
       ) {
-        return UserType.updateOne(
+        const find = UserSchema.updateOne(
           { _id: id },
           { $set: { username } },
           { $set: { password } },
@@ -298,6 +318,7 @@ const RootMutation = new GraphQLObjectType({
           { $set: { email } },
           { $set: { phone_number } }
         );
+        console.log(find);
       },
     },
 
