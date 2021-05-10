@@ -115,6 +115,18 @@ const RootMutation = new GraphQLObjectType({
       },
     },
 
+    deleteProduct: {
+      type: ProductType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        return ProductSchema.findById(id);
+      },
+    },
+
     addUser: {
       type: UserType,
       args: {
@@ -148,6 +160,18 @@ const RootMutation = new GraphQLObjectType({
 
         user.save();
         return user;
+      },
+    },
+
+    deleteUser: {
+      type: UserType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        return UserSchema.findById(id);
       },
     },
   },
