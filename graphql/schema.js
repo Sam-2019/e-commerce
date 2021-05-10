@@ -82,7 +82,7 @@ const RootQuery = new GraphQLObjectType({
 const RootMutation = new GraphQLObjectType({
   name: "RootMutationType",
   fields: {
-    addproduct: {
+    addProduct: {
       type: ProductType,
       args: {
         name: {
@@ -115,7 +115,7 @@ const RootMutation = new GraphQLObjectType({
       },
     },
 
-    adduser: {
+    addUser: {
       type: UserType,
       args: {
         username: {
