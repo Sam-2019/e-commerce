@@ -115,6 +115,40 @@ const RootMutation = new GraphQLObjectType({
       },
     },
 
+    updateProduct: {
+      type: ProductType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        name: {
+          type: GraphQLString,
+        },
+        sku: {
+          type: GraphQLString,
+        },
+        price: {
+          type: GraphQLString,
+        },
+        image: {
+          type: GraphQLString,
+        },
+        quantity: {
+          type: GraphQLInt,
+        },
+      },
+      resolve(parentValue, { id, name, sku, price, image, quantity }) {
+        return ProductType.updateOne(
+          { _id: id },
+          { $set: { name } },
+          { $set: { sku } },
+          { $set: { price } },
+          { $set: { image } },
+          { $set: { quantity } }
+        );
+      },
+    },
+
     deleteProduct: {
       type: ProductType,
       args: {
@@ -160,6 +194,43 @@ const RootMutation = new GraphQLObjectType({
 
         user.save();
         return user;
+      },
+    },
+
+    updateUser: {
+      type: UserType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        username: {
+          type: GraphQLString,
+        },
+        first_name: {
+          type: GraphQLString,
+        },
+        last_name: {
+          type: GraphQLString,
+        },
+        email: {
+          type: GraphQLString,
+        },
+        phone_number: {
+          type: GraphQLString,
+        },
+      },
+      resolve(
+        parentValue,
+        { id, username, first_name, last_name, email, phone_number }
+      ) {
+        return UserType.updateOne(
+          { _id: id },
+          { $set: { username } },
+          { $set: { first_name } },
+          { $set: { last_name } },
+          { $set: { email } },
+          { $set: { phone_number } }
+        );
       },
     },
 
