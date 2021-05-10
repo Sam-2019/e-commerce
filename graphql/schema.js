@@ -157,7 +157,7 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        return ProductSchema.findById(id);
+        return ProductSchema.findByIdAndDelete(id);
       },
     },
 
@@ -242,7 +242,7 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        return UserSchema.findById(id);
+        return UserSchema.findByIdAndDelete(id);
       },
     },
   },
