@@ -29,6 +29,7 @@ const UserType = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLID },
     username: { type: GraphQLString },
+    password: { type: GraphQLString },
     first_name: { type: GraphQLString },
     last_name: { type: GraphQLString },
     email: { type: GraphQLString },
@@ -167,7 +168,10 @@ const RootMutation = new GraphQLObjectType({
         username: {
           type: new GraphQLNonNull(GraphQLString),
         },
-        fisrt_name: {
+        password: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+        first_name: {
           type: new GraphQLNonNull(GraphQLString),
         },
         last_name: {
@@ -182,10 +186,11 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve(
         parentValue,
-        { username, first_name, last_name, email, phone_number }
+        { username, password, first_name, last_name, email, phone_number }
       ) {
         var user = new UserSchema({
           username,
+          password,
           first_name,
           last_name,
           email,
@@ -202,6 +207,9 @@ const RootMutation = new GraphQLObjectType({
       args: {
         id: {
           type: new GraphQLNonNull(GraphQLID),
+        },
+        password: {
+          type: GraphQLString,
         },
         username: {
           type: GraphQLString,
@@ -221,11 +229,12 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve(
         parentValue,
-        { id, username, first_name, last_name, email, phone_number }
+        { id, username, password, first_name, last_name, email, phone_number }
       ) {
         return UserType.updateOne(
           { _id: id },
           { $set: { username } },
+          { $set: { password } },
           { $set: { first_name } },
           { $set: { last_name } },
           { $set: { email } },
