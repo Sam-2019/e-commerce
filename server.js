@@ -1,19 +1,34 @@
+const express = require("express");
+const { graphqlHTTP } = require("express-graphql");
+const DataSchema = require("./graphql/schema");
 
-// Require the framework and instantiate it
-const fastify = require('fastify')({ logger: true })
+require("./db/db");
 
-// Declare a route
-fastify.get('/', async (request, reply) => {
-  return { hello: 'world' }
-})
+const app = express();
 
-// Run the server!
-const start = async () => {
-  try {
-    await fastify.listen(3000)
-  } catch (err) {
-    fastify.log.error(err)
-    process.exit(1)
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
   }
-}
-start()
+  next();
+});
+
+app.get("/", function (req, res) {
+  res.end("Server up and running");
+});
+
+app.use(
+  "/graphql",
+  graphqlHTTP({
+    schema: DataSchema,
+    graphiql: true,
+    pretty: true,
+  })
+);
+
+app.listen(process.env.PORT || 5000);
+console.log("GraphQL server up!");
