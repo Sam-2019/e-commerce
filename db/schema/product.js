@@ -5,6 +5,9 @@ const ProductSchema = new Schema({
   name: {
     type: String,
   },
+  author: {
+    type: String,
+  },
   sku: {
     type: String,
   },
@@ -17,6 +20,9 @@ const ProductSchema = new Schema({
   quantity: {
     type: Number,
     min: 0,
+  },
+  detail: {
+    type: String,
   },
 });
 
