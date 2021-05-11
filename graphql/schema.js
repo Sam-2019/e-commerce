@@ -8,6 +8,8 @@ const {
   GraphQLNonNull,
   GraphQLID,
 } = graphql;
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const ProductSchema = require("../db/schema/product");
 const UserSchema = require("../db/schema/user");
@@ -45,8 +47,8 @@ const CartType = new GraphQLObjectType({
   name: "CartType",
   fields: () => ({
     id: { type: GraphQLID },
-    user: { type: UserType },
-    products: { type: ProductType },
+    user: { type: GraphQLID },
+    products: { type: GraphQLList(ProductType) },
   }),
 });
 
@@ -172,7 +174,7 @@ const RootMutation = new GraphQLObjectType({
         parentValue,
         { name, author, sku, price, imageURL, quantity, detail }
       ) {
-        var product = new ProductSchema({
+        const product = new ProductSchema({
           name,
           author,
           sku,
@@ -266,17 +268,23 @@ const RootMutation = new GraphQLObjectType({
         parentValue,
         { username, password, first_name, last_name, email, phone_number }
       ) {
-        var user = new UserSchema({
-          username,
-          password,
-          first_name,
-          last_name,
-          email,
-          phone_number,
-        });
+        const update = async () => {
+          const hashedPassword = await bcrypt.hash(password, 12);
 
-        user.save();
-        return user;
+          const user = new UserSchema({
+            username: username,
+            password: hashedPassword,
+            first_name: first_name,
+            last_name: last_name,
+            email: email,
+            phone_number: phone_number,
+          });
+
+          user.save();
+          return user;
+        };
+
+        return update();
       },
     },
 
@@ -343,16 +351,17 @@ const RootMutation = new GraphQLObjectType({
       type: CartType,
       args: {
         user: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: new GraphQLNonNull(GraphQLID),
         },
-        product: {
-          type: new GraphQLNonNull(GraphQLString),
+        products: {
+          type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve(parentValue, { user, product }) {
-        var cart = new CartSchema({
+      resolve(parentValue, { user, products }) {
+        console.log(user, products);
+        const cart = new CartSchema({
           user,
-          product,
+          products,
         });
 
         cart.save();
@@ -371,7 +380,7 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { user, product }) {
-        var order = new OrderSchema({
+        const order = new OrderSchema({
           user,
           product,
         });
