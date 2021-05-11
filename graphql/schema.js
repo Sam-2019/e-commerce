@@ -76,8 +76,8 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve(parentValue, { user }) {
-        return ProductSchema.findOne({ sku });
+      resolve(parentValue, { sku }) {
+        return ProductSchema.findOne({ sku: sku });
       },
     },
 
@@ -244,22 +244,22 @@ const RootMutation = new GraphQLObjectType({
       type: UserType,
       args: {
         username: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         },
         password: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         },
         first_name: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         },
         last_name: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         },
         email: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         },
         phone_number: {
-          type: new GraphQLNonNull(GraphQLInt),
+          type: GraphQLInt,
         },
       },
       resolve(
