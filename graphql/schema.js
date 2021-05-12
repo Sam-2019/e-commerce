@@ -15,6 +15,7 @@ const ProductSchema = require("../db/schema/product");
 const UserSchema = require("../db/schema/user");
 const CartSchema = require("../db/schema/cart");
 const OrderSchema = require("../db/schema/order");
+const WishListSchema = require("../db/schema/wishlist");
 
 const ProductType = new GraphQLObjectType({
   name: "ProductType",
@@ -42,6 +43,7 @@ const UserType = new GraphQLObjectType({
     phone_number: { type: GraphQLString },
     cart: { type: GraphQLList(CartType) },
     order: { type: GraphQLList(OrderType) },
+    wishlist: { type: GraphQLList(WishListType) },
   }),
 });
 
@@ -62,6 +64,15 @@ const OrderType = new GraphQLObjectType({
     id: { type: GraphQLID },
     user: { type: GraphQLID },
     products: { type: GraphQLList(ProductType) },
+  }),
+});
+
+const WishListType = new GraphQLObjectType({
+  name: "WishListType",
+  fields: () => ({
+    id: { type: GraphQLID },
+    user: { type: GraphQLID },
+    product: { type: GraphQLID },
   }),
 });
 
@@ -102,7 +113,7 @@ const RootQuery = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        return UserSchema.findById(id).populate(["cart", "order"]);
+        return UserSchema.findById(id).populate(["cart", "order", "wishlist"]);
       },
     },
 
@@ -141,6 +152,25 @@ const RootQuery = new GraphQLObjectType({
       },
       resolve(parentValue, { id }) {
         return OrderSchema.findById(id);
+      },
+    },
+
+    wishlists: {
+      type: new GraphQLList(WishListType),
+      resolve(parentValue, args) {
+        return WishListSchema.find();
+      },
+    },
+
+    wishlist: {
+      type: WishListType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        return WishListSchema.findById(id);
       },
     },
   }),
@@ -438,6 +468,79 @@ const RootMutation = new GraphQLObjectType({
         }
 
         return createOrder();
+      },
+    },
+
+    deleteOrder: {
+      type: CartType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        const order = OrderSchema.findByIdAndDelete(id)
+          .then((result) => {
+            return UserSchema.findById(result.user);
+          })
+          .then((data) => {
+            data.order.remove(id);
+            return data.save();
+          });
+        return order;
+      },
+    },
+
+    addWishlist: {
+      type: WishListType,
+      args: {
+        user: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        product: {
+          type: GraphQLList(GraphQLID),
+        },
+      },
+      resolve(parentValue, { user, product }) {
+        function createWishlist() {
+          const wishlist = new WishListSchema({
+            user,
+            product,
+          });
+          wishlist
+            .save()
+            .then((result) => {
+              return UserSchema.findById(result.user);
+            })
+            .then((data) => {
+              data.wishlist.push(wishlist);
+              return data.save();
+            });
+
+          return wishlist;
+        }
+
+        return createWishlist();
+      },
+    },
+
+    deleteWishlist: {
+      type: WishListType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        const wishlist = WishListSchema.findByIdAndDelete(id)
+          .then((result) => {
+            return UserSchema.findById(result.user);
+          })
+          .then((data) => {
+            data.wishlist.remove(id);
+            return data.save();
+          });
+        return wishlist;
       },
     },
   },
