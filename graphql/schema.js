@@ -159,10 +159,7 @@ const RootQuery = new GraphQLObjectType({
         const loginUser = async () => {
           const user = await UserSchema.findOne({ email }).then(
             async (result) => {
-             // console.log(result);
               const isEqual = await bcrypt.compare(password, result.password);
-
-              // console.log(isEqual);
 
               const check = () => {
                 if (!result) {
