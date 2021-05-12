@@ -90,6 +90,15 @@ const ReviewType = new GraphQLObjectType({
   }),
 });
 
+const LoginType = new GraphQLObjectType({
+  name: "LoginType",
+  fields: () => ({
+    user: { type: GraphQLID },
+    token: { type: GraphQLString },
+    tokenexpiration: { type: GraphQLInt },
+  }),
+});
+
 const RootQuery = new GraphQLObjectType({
   name: "RootQueryType",
   fields: () => ({
@@ -137,7 +146,7 @@ const RootQuery = new GraphQLObjectType({
     },
 
     login: {
-      type: UserType,
+      type: LoginType,
       args: {
         email: {
           type: new GraphQLNonNull(GraphQLString),
@@ -150,7 +159,7 @@ const RootQuery = new GraphQLObjectType({
         const loginUser = async () => {
           const user = await UserSchema.findOne({ email }).then(
             async (result) => {
-              //  console.log(result);
+             // console.log(result);
               const isEqual = await bcrypt.compare(password, result.password);
 
               // console.log(isEqual);
@@ -164,7 +173,19 @@ const RootQuery = new GraphQLObjectType({
                   return new Error("Password is incoreect");
                 }
 
-                return result;
+                const token = jwt.sign(
+                  { userId: result._id, email: result.email },
+                  "somesupersecretkey",
+                  {
+                    expiresIn: "1h",
+                  }
+                );
+
+                return {
+                  user: result.id,
+                  token,
+                  tokenexpiration: 1,
+                };
               };
 
               return check();
