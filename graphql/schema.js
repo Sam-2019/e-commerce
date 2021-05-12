@@ -40,6 +40,7 @@ const UserType = new GraphQLObjectType({
     last_name: { type: GraphQLString },
     email: { type: GraphQLString },
     phone_number: { type: GraphQLString },
+    cart: { type: GraphQLList(CartType) },
   }),
 });
 
@@ -48,7 +49,9 @@ const CartType = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLID },
     user: { type: GraphQLID },
-    products: { type: GraphQLList(ProductType) },
+    product: { type: GraphQLID },
+    price: { type: GraphQLString },
+    quantity: { type: GraphQLString },
   }),
 });
 
@@ -353,15 +356,23 @@ const RootMutation = new GraphQLObjectType({
         user: {
           type: new GraphQLNonNull(GraphQLID),
         },
-        products: {
+        product: {
           type: new GraphQLNonNull(GraphQLID),
+        },
+        price: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+        quantity: {
+          type: new GraphQLNonNull(GraphQLString),
         },
       },
       resolve(parentValue, { user, products }) {
         console.log(user, products);
         const cart = new CartSchema({
           user,
-          products,
+          product,
+          price,
+          quantity
         });
 
         cart.save();
