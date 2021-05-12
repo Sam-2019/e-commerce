@@ -41,6 +41,7 @@ const UserType = new GraphQLObjectType({
     email: { type: GraphQLString },
     phone_number: { type: GraphQLString },
     cart: { type: GraphQLList(CartType) },
+    order: { type: GraphQLList(OrderType) },
   }),
 });
 
@@ -59,8 +60,8 @@ const OrderType = new GraphQLObjectType({
   name: "OrderType",
   fields: () => ({
     id: { type: GraphQLID },
-    user: { type: UserType },
-    products: { type: ProductType },
+    user: { type: GraphQLID },
+    products: { type: GraphQLList(ProductType) },
   }),
 });
 
@@ -101,7 +102,7 @@ const RootQuery = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        return UserSchema.findById(id);
+        return UserSchema.findById(id).populate(["cart", "order"]);
       },
     },
 
@@ -366,16 +367,43 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve(parentValue, { user, products }) {
-        console.log(user, products);
+      resolve(parentValue, { user, product, price, quantity }) {
         const cart = new CartSchema({
           user,
           product,
           price,
-          quantity
+          quantity,
         });
 
-        cart.save();
+        cart
+          .save()
+          .then((result) => {
+            return UserSchema.findById(user);
+          })
+          .then((user) => {
+            user.cart.push(cart);
+            return user.save();
+          });
+        return cart;
+      },
+    },
+
+    deleteCart: {
+      type: CartType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        const cart = CartSchema.findByIdAndDelete(id)
+          .then((result) => {
+            return UserSchema.findById(result.user);
+          })
+          .then((data) => {
+            data.cart.remove(id);
+            return data.save();
+          });
         return cart;
       },
     },
@@ -384,20 +412,32 @@ const RootMutation = new GraphQLObjectType({
       type: OrderType,
       args: {
         user: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: new GraphQLNonNull(GraphQLID),
         },
-        product: {
-          type: new GraphQLNonNull(GraphQLString),
+        products: {
+          type: GraphQLList(GraphQLID),
         },
       },
-      resolve(parentValue, { user, product }) {
-        const order = new OrderSchema({
-          user,
-          product,
-        });
+      resolve(parentValue, { user, products }) {
+        function createOrder() {
+          const order = new OrderSchema({
+            user,
+            products,
+          });
+          order
+            .save()
+            .then((result) => {
+              return UserSchema.findById(result.user);
+            })
+            .then((data) => {
+              data.order.push(order);
+              return data.save();
+            });
 
-        order.save();
-        return order;
+          return order;
+        }
+
+        return createOrder();
       },
     },
   },
