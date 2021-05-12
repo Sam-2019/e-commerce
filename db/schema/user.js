@@ -38,6 +38,12 @@ const UserSchema = new Schema({
       ref: "WishList",
     },
   ],
+  review: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Review",
+    },
+  ],
 });
 
 module.exports = mongoose.model("User", UserSchema);
