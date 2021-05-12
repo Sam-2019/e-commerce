@@ -16,6 +16,7 @@ const UserSchema = require("../db/schema/user");
 const CartSchema = require("../db/schema/cart");
 const OrderSchema = require("../db/schema/order");
 const WishListSchema = require("../db/schema/wishlist");
+const ReviewSchema = require("../db/schema/review");
 
 const ProductType = new GraphQLObjectType({
   name: "ProductType",
@@ -28,6 +29,7 @@ const ProductType = new GraphQLObjectType({
     imageURL: { type: GraphQLString },
     quantity: { type: GraphQLInt },
     detail: { type: GraphQLString },
+    review: { type: GraphQLList(ReviewType) },
   }),
 });
 
@@ -44,6 +46,7 @@ const UserType = new GraphQLObjectType({
     cart: { type: GraphQLList(CartType) },
     order: { type: GraphQLList(OrderType) },
     wishlist: { type: GraphQLList(WishListType) },
+    review: { type: GraphQLList(ReviewType) },
   }),
 });
 
@@ -73,6 +76,17 @@ const WishListType = new GraphQLObjectType({
     id: { type: GraphQLID },
     user: { type: GraphQLID },
     product: { type: GraphQLID },
+  }),
+});
+
+const ReviewType = new GraphQLObjectType({
+  name: "ReviewType",
+  fields: () => ({
+    id: { type: GraphQLID },
+    user: { type: GraphQLID },
+    product: { type: GraphQLID },
+    rating: { type: GraphQLInt },
+    text: { type: GraphQLString },
   }),
 });
 
@@ -113,7 +127,12 @@ const RootQuery = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        return UserSchema.findById(id).populate(["cart", "order", "wishlist"]);
+        return UserSchema.findById(id).populate([
+          "cart",
+          "order",
+          "wishlist",
+          "review",
+        ]);
       },
     },
 
@@ -171,6 +190,25 @@ const RootQuery = new GraphQLObjectType({
       },
       resolve(parentValue, { id }) {
         return WishListSchema.findById(id);
+      },
+    },
+
+    reviews: {
+      type: new GraphQLList(ReviewType),
+      resolve(parentValue, args) {
+        return ReviewSchema.find();
+      },
+    },
+
+    review: {
+      type: ReviewType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        return ReviewSchema.findById(id);
       },
     },
   }),
@@ -541,6 +579,98 @@ const RootMutation = new GraphQLObjectType({
             return data.save();
           });
         return wishlist;
+      },
+    },
+
+    addReview: {
+      type: ReviewType,
+      args: {
+        user: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        product: {
+          type: GraphQLList(GraphQLID),
+        },
+        rating: {
+          type: new GraphQLNonNull(GraphQLInt),
+        },
+        text: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve(parentValue, { user, product, rating, text }) {
+        function createReview() {
+          const review = new ReviewSchema({
+            user,
+            product,
+            rating,
+            text,
+          });
+          review.save().then((result) => {
+            const find = async () => {
+              const findProduct = await ProductSchema.findById(result.product);
+              const findUser = await UserSchema.findById(result.user);
+
+              const multipleSave = async () => {
+                await findProduct.review.push(review);
+                await findUser.review.push(review);
+
+                return findProduct.save(), findUser.save();
+              };
+
+              return multipleSave();
+            };
+
+            return find();
+            // return ProductSchema.findById(result.product);
+          });
+          // .then((data) => {
+          //   console.log(data);
+          //   data.review.push(review);
+          //   return data.save();
+          // });
+
+          return review;
+        }
+
+        return createReview();
+      },
+    },
+
+    deleteReview: {
+      type: ReviewType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        function deleteReview() {
+          const removeReview = ReviewSchema.findByIdAndDelete(id).then(
+            (result) => {
+              const find = async () => {
+                const findProduct = await ProductSchema.findById(
+                  result.product
+                );
+                const findUser = await UserSchema.findById(result.user);
+
+                const multipleDelete = async () => {
+                  await findProduct.review.remove(id);
+                  await findUser.review.remove(id);
+
+                  return findProduct.save(), findUser.save();
+                };
+
+                return multipleDelete();
+              };
+              return find();
+            }
+          );
+
+          return removeReview;
+        }
+
+        return deleteReview();
       },
     },
   },
