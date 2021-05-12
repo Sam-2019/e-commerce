@@ -20,6 +20,12 @@ const UserSchema = new Schema({
   phone_number: {
     type: String,
   },
+  cart: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Cart",
+    },
+  ],
 });
 
 module.exports = mongoose.model("User", UserSchema);
