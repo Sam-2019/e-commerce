@@ -136,6 +136,48 @@ const RootQuery = new GraphQLObjectType({
       },
     },
 
+    login: {
+      type: UserType,
+      args: {
+        email: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+        password: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve(parentValue, { email, password }) {
+        const loginUser = async () => {
+          const user = await UserSchema.findOne({ email }).then(
+            async (result) => {
+              //  console.log(result);
+              const isEqual = await bcrypt.compare(password, result.password);
+
+              // console.log(isEqual);
+
+              const check = () => {
+                if (!result) {
+                  return new Error("User does not exist");
+                }
+
+                if (!isEqual) {
+                  return new Error("Password is incoreect");
+                }
+
+                return result;
+              };
+
+              return check();
+            }
+          );
+
+          return user;
+        };
+
+        return loginUser();
+      },
+    },
+
     carts: {
       type: new GraphQLList(CartType),
       resolve(parentValue, args) {
@@ -314,7 +356,7 @@ const RootMutation = new GraphQLObjectType({
       },
     },
 
-    addUser: {
+    signup: {
       type: UserType,
       args: {
         username: {
