@@ -7,12 +7,16 @@ const CartSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    products: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Product",
-      },
-    ],
+    product: {
+      type: Schema.Types.ObjectId,
+      ref: "Product",
+    },
+    price: {
+      type: String,
+    },
+    quantity: {
+      type: String,
+    },
   },
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
