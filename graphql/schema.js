@@ -55,7 +55,7 @@ const CartType = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLID },
     user: { type: GraphQLID },
-    product: { type: GraphQLID },
+    product: { type: ProductType },
     price: { type: GraphQLString },
     quantity: { type: GraphQLString },
   }),
@@ -198,8 +198,13 @@ const RootQuery = new GraphQLObjectType({
 
     carts: {
       type: new GraphQLList(CartType),
-      resolve(parentValue, args) {
-        return CartSchema.find();
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        return CartSchema.find({ user: id }).populate("product");
       },
     },
 
@@ -596,7 +601,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
         product: {
-          type: GraphQLList(GraphQLID),
+          type: new GraphQLNonNull(GraphQLID),
         },
       },
       resolve(parentValue, { user, product }) {
@@ -649,7 +654,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
         product: {
-          type: GraphQLList(GraphQLID),
+          type: new GraphQLNonNull(GraphQLID),
         },
         rating: {
           type: new GraphQLNonNull(GraphQLInt),
