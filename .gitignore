@@ -1,3 +1,4 @@
 /node_modules
 fastify server.js
 /graphql/text.txt
+/graphql/text
