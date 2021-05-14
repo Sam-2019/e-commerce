@@ -549,11 +549,11 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve(parentValue, { id }) {
         const cart = CartSchema.findByIdAndDelete(id)
-          .then((result) => {
-            return UserSchema.findById(result.user);
+          .then(async (result) => {
+            return await UserSchema.findById(result.user);
           })
-          .then((data) => {
-            data.cart.remove(id);
+          .then(async (data) => {
+            await data.cart.remove(id);
             return data.save();
           });
         return cart;
