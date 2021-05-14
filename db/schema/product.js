@@ -19,7 +19,7 @@ const ProductSchema = new Schema({
   },
   quantity: {
     type: Number,
-    min: 0,
+    min: 1,
   },
   detail: {
     type: String,
