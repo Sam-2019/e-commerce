@@ -197,14 +197,33 @@ const RootQuery = new GraphQLObjectType({
     },
 
     carts: {
-      type: new GraphQLList(CartType),
+      type: new GraphQLList(ProductType),
       args: {
         id: {
           type: new GraphQLNonNull(GraphQLID),
         },
       },
       resolve(parentValue, { id }) {
-        return CartSchema.find({ user: id }).populate("product");
+        return CartSchema.find({ user: id })
+          .populate("product")
+          .then((results) => {
+            //      return result;
+            // console.log(result.product);
+
+            return results.map((result) => {
+              // console.log(result.product);
+              return {
+                ...result._doc,
+                id: result.product.id,
+                name: result.product.name,
+                author: result.product.author,
+                sku: result.product.sku,
+                price: result.product.price,
+                imageURL: result.product.imageURL,
+                quantity: result.product.quantity,
+              };
+            });
+          });
       },
     },
 
