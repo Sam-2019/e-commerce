@@ -548,15 +548,23 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        const cart = CartSchema.findByIdAndDelete(id)
-          .then(async (result) => {
-            return await UserSchema.findById(result.user);
-          })
-          .then(async (data) => {
-            await data.cart.remove(id);
-            return data.save();
-          });
-        return cart;
+        async function deleteCart() {
+          try {
+            const cart = CartSchema.findByIdAndDelete(id);
+            const { user } = await cart;
+            const findUser = await UserSchema.findById(user);
+            //     console.log(findUser);
+
+            await findUser.cart.remove(id);
+            await findUser.save();
+            return cart;
+          } catch (err) {
+            // catches errors both in fetch and response.json
+            console.log(err);
+          }
+        }
+
+        deleteCart();
       },
     },
 
