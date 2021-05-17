@@ -642,22 +642,23 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { user, products }) {
-        function createOrder() {
-          const order = new OrderSchema({
-            user,
-            products,
-          });
-          order
-            .save()
-            .then((result) => {
-              return UserSchema.findById(result.user);
-            })
-            .then((data) => {
-              data.order.push(order);
-              return data.save();
-            });
+        const order = new OrderSchema({
+          user,
+          products,
+        });
 
-          return order;
+        async function createOrder() {
+          try {
+            const saveItem = order.save();
+
+            const findUser = UserSchema.findById(saveItem.user);
+            await findUser.order.push(order);
+            await findUser.save();
+
+            return order;
+          } catch (err) {
+            console.log(errr);
+          }
         }
 
         return createOrder();
@@ -705,11 +706,30 @@ const RootMutation = new GraphQLObjectType({
 
         async function addWishlist() {
           try {
-            const saveItem = await wishlist.save();
-            const findUser = await UserSchema.findById(saveItem.user);
+            const findProduct = await WishListSchema.findOne({
+              product: cart.product,
+            });
 
-            await findUser.wishlist.push(wishlist);
-            return findUser.save();
+            const wishlistUser = String(wishlist.user);
+
+            if (!findProduct) {
+              const saveItem = await wishlist.save();
+              const findUser = await UserSchema.findById(saveItem.user);
+
+              await findUser.wishlist.push(wishlist);
+              await findUser.save();
+
+              return wishlist;
+            }
+
+            if (findProduct) {
+              const productUser = String(findProduct.user);
+              const productID = String(findProduct.id);
+
+              if (wishlistUser === productUser) {
+                return "Item already exist ";
+              }
+            }
           } catch (err) {
             console.log(err);
           }
@@ -765,35 +785,23 @@ const RootMutation = new GraphQLObjectType({
           text,
         });
 
-        function createReview() {
+        async function createReview() {
           try {
-            review.save().then((result) => {
-              const find = async () => {
-                const findProduct = await ProductSchema.findById(
-                  result.product
-                );
-                const findUser = await UserSchema.findById(result.user);
+            const saveItem = await review.save();
 
-                const multipleSave = async () => {
-                  await findProduct.review.push(review);
-                  await findUser.review.push(review);
+            const findProduct = await ProductSchema.findById(saveItem.product);
+            const findUser = await UserSchema.findById(saveItem.user);
 
-                  return findProduct.save(), findUser.save();
-                };
+            const multipleSave = async () => {
+              await findProduct.review.push(review);
+              await findUser.review.push(review);
 
-                return multipleSave();
-              };
+              return findProduct.save(), findUser.save();
+            };
 
-              return find();
-              // return ProductSchema.findById(result.product);
-            });
-            // .then((data) => {
-            //   console.log(data);
-            //   data.review.push(review);
-            //   return data.save();
-            // });
+            await multipleSave();
 
-            return review;
+            return saveItem;
           } catch (err) {
             console.log(err);
           }
@@ -828,7 +836,9 @@ const RootMutation = new GraphQLObjectType({
               return findProduct.save(), findUser.save();
             };
 
-            return multipleDelete();
+            await multipleDelete();
+
+            return removeReview;
           } catch (err) {
             console.log(err);
           }
