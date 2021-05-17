@@ -557,7 +557,7 @@ const RootMutation = new GraphQLObjectType({
           try {
             const cart = CartSchema.findByIdAndDelete(id);
             //const { user } = await cart;
-           // console.log(cart);
+            // console.log(cart);
             const findUser = await UserSchema.findById(user);
             ///  console.log(findUser);
             await findUser.cart.remove(id);
