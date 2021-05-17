@@ -528,7 +528,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLBoolean),
         },
       },
-      resolve(parentValue, { id, verified = true }) {
+      resolve(parentValue, { id, verified }) {
         async function verifyUser() {
           try {
             const verify = await UserSchema.updateOne(
