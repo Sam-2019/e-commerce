@@ -555,17 +555,16 @@ const RootMutation = new GraphQLObjectType({
             //   console.log(findProduct);
             // console.log(findUser);
 
+            const cartUser = String(cart.user);
+
             if (!findProduct) {
-              const saveItem = () => {
-                return cart
-                  .save()
-                  .then((result) => {
-                    return UserSchema.findById(user);
-                  })
-                  .then((user) => {
-                    user.cart.push(cart);
-                    return user.save();
-                  });
+              const saveItem = async () => {
+                await cart.save();
+                const findUser = await UserSchema.findById(cartUser);
+
+                await findUser.cart.push(cart);
+
+                return findUser.save();
               };
 
               return saveItem();
@@ -573,7 +572,7 @@ const RootMutation = new GraphQLObjectType({
 
             if (findProduct) {
               // console.log("match");
-              const cartUser = String(cart.user);
+
               const productUser = String(findProduct.user);
               const productID = String(findProduct.id);
 
@@ -585,7 +584,7 @@ const RootMutation = new GraphQLObjectType({
                 const updateQuantity = await CartSchema.findOneAndUpdate(
                   { _id: productID },
                   { $set: { quantity } },
-                  { omitUndefined: false,}
+                  { omitUndefined: false }
                 );
                 //  console.log(updateProduct)
                 return updateQuantity;
