@@ -802,29 +802,23 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        function deleteReview() {
-          const removeReview = ReviewSchema.findByIdAndDelete(id).then(
-            (result) => {
-              const find = async () => {
-                const findProduct = await ProductSchema.findById(
-                  result.product
-                );
-                const findUser = await UserSchema.findById(result.user);
+        async function deleteReview() {
+          const removeReview = await ReviewSchema.findByIdAndDelete(id);
 
-                const multipleDelete = async () => {
-                  await findProduct.review.remove(id);
-                  await findUser.review.remove(id);
-
-                  return findProduct.save(), findUser.save();
-                };
-
-                return multipleDelete();
-              };
-              return find();
-            }
+          const findProduct = await ProductSchema.findById(
+            removeReview.product
           );
 
-          return removeReview;
+          const findUser = await UserSchema.findById(removeReview.user);
+
+          const multipleDelete = async () => {
+            await findProduct.review.remove(id);
+            await findUser.review.remove(id);
+
+            return findProduct.save(), findUser.save();
+          };
+
+          return multipleDelete();
         }
 
         return deleteReview();
