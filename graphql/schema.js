@@ -7,6 +7,7 @@ const {
   GraphQLList,
   GraphQLNonNull,
   GraphQLID,
+  GraphQLBoolean,
 } = graphql;
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -43,6 +44,7 @@ const UserType = new GraphQLObjectType({
     last_name: { type: GraphQLString },
     email: { type: GraphQLString },
     phone_number: { type: GraphQLString },
+    verified: { type: GraphQLBoolean },
     cart: { type: GraphQLList(CartType) },
     order: { type: GraphQLList(OrderType) },
     wishlist: { type: GraphQLList(WishListType) },
@@ -459,10 +461,21 @@ const RootMutation = new GraphQLObjectType({
         phone_number: {
           type: GraphQLInt,
         },
+        verified: {
+          type: GraphQLBoolean,
+        },
       },
       resolve(
         parentValue,
-        { username, password, first_name, last_name, email, phone_number }
+        {
+          username,
+          password,
+          first_name,
+          last_name,
+          email,
+          phone_number,
+          verified = false,
+        }
       ) {
         async function signup() {
           const hashedPassword = await bcrypt.hash(password, 12);
@@ -474,12 +487,17 @@ const RootMutation = new GraphQLObjectType({
             last_name: last_name,
             email: email,
             phone_number: phone_number,
+            verified: verified,
           });
 
           try {
-            const findUser = UserSchema.findOne({ email });
+            const findUser = await UserSchema.findOne({
+              email: String(user.email),
+            });
 
-            const findUsername = UserSchema.findOne({ username });
+            const findUsername = await UserSchema.findOne({
+              username: String(user.username),
+            });
 
             if (findUser) {
               return "Email already exist";
@@ -497,6 +515,44 @@ const RootMutation = new GraphQLObjectType({
         }
 
         return signup();
+      },
+    },
+
+    verifyUser: {
+      type: UserType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        verified: {
+          type: new GraphQLNonNull(GraphQLBoolean),
+        },
+      },
+      resolve(parentValue, { id, verified = true }) {
+        async function verifyUser() {
+          try {
+            const verify = await UserSchema.updateOne(
+              { _id: id },
+              {
+                $set: {
+                  verified,
+                },
+              },
+              { omitUndefined: false }
+            );
+
+            verify;
+
+            return {
+              id: id,
+              verified: verified,
+            };
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return verifyUser();
       },
     },
 

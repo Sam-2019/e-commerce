@@ -20,6 +20,9 @@ const UserSchema = new Schema({
   phone_number: {
     type: String,
   },
+  verified: {
+    type: Boolean,
+  },
   cart: [
     {
       type: Schema.Types.ObjectId,
