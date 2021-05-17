@@ -171,39 +171,39 @@ const RootQuery = new GraphQLObjectType({
       },
       resolve(parentValue, { email, password }) {
         const loginUser = async () => {
-          const user = await UserSchema.findOne({ email }).then(
-            async (result) => {
-              const isEqual = await bcrypt.compare(password, result.password);
+          try {
+            const user = await UserSchema.findOne({ email });
 
-              const check = () => {
-                if (!result) {
-                  return new Error("User does not exist");
+            const isEqual = await bcrypt.compare(password, user.password);
+
+            const check = () => {
+              if (!result) {
+                return new Error("User does not exist");
+              }
+
+              if (!isEqual) {
+                return new Error("Password is incoreect");
+              }
+
+              const token = jwt.sign(
+                { userId: result._id, email: result.email },
+                "somesupersecretkey",
+                {
+                  expiresIn: "1h",
                 }
+              );
 
-                if (!isEqual) {
-                  return new Error("Password is incoreect");
-                }
-
-                const token = jwt.sign(
-                  { userId: result._id, email: result.email },
-                  "somesupersecretkey",
-                  {
-                    expiresIn: "1h",
-                  }
-                );
-
-                return {
-                  user: result.id,
-                  token,
-                  tokenexpiration: 1,
-                };
+              return {
+                user: result.id,
+                token,
+                tokenexpiration: 1,
               };
+            };
 
-              return check();
-            }
-          );
-
-          return user;
+            return check();
+          } catch (err) {
+            console.log(err);
+          }
         };
 
         return loginUser();
@@ -355,8 +355,16 @@ const RootMutation = new GraphQLObjectType({
           detail,
         });
 
-        product.save();
-        return product;
+        async function addProduct() {
+          try {
+            const saveItem = product.save();
+            return saveItem;
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return addProduct();
       },
     },
 
@@ -392,12 +400,21 @@ const RootMutation = new GraphQLObjectType({
         parentValue,
         { id, name, author, sku, price, imageURL, quantity, detail }
       ) {
-        const find = ProductSchema.findOneAndUpdate(
-          { _id: id },
-          { $set: { name, author, sku, price, imageURL, quantity, detail } },
-          { omitUndefined: false }
-        );
-        return find;
+        async function updateProduct() {
+          try {
+            const find = ProductSchema.findOneAndUpdate(
+              { _id: id },
+              {
+                $set: { name, author, sku, price, imageURL, quantity, detail },
+              },
+              { omitUndefined: false }
+            );
+            return find;
+          } catch (err) {
+            console.log(err);
+          }
+        }
+        return updateProduct();
       },
     },
 
@@ -409,7 +426,15 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        return ProductSchema.findByIdAndDelete(id);
+        async function deleteProduct() {
+          try {
+            const deleteItem = await ProductSchema.findByIdAndDelete(id);
+            return deleteItem;
+          } catch (err) {
+            console.log(err);
+          }
+        }
+        return deleteProduct();
       },
     },
 
@@ -439,7 +464,7 @@ const RootMutation = new GraphQLObjectType({
         parentValue,
         { username, password, first_name, last_name, email, phone_number }
       ) {
-        const update = async () => {
+        async function signup() {
           const hashedPassword = await bcrypt.hash(password, 12);
 
           const user = new UserSchema({
@@ -451,11 +476,15 @@ const RootMutation = new GraphQLObjectType({
             phone_number: phone_number,
           });
 
-          user.save();
-          return user;
-        };
+          try {
+            const userSignup = await user.save();
+            return userSignup;
+          } catch (err) {
+            console.log(err);
+          }
+        }
 
-        return update();
+        return signup();
       },
     },
 
