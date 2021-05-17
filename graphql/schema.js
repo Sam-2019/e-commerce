@@ -477,6 +477,18 @@ const RootMutation = new GraphQLObjectType({
           });
 
           try {
+            const findUser = UserSchema.findOne({ email });
+
+            const findUsername = UserSchema.findOne({ username });
+
+            if (findUser) {
+              return "Email already exist";
+            }
+
+            if (findUsername) {
+              return "Username already exist";
+            }
+
             const userSignup = await user.save();
             return userSignup;
           } catch (err) {
@@ -781,9 +793,11 @@ const RootMutation = new GraphQLObjectType({
             const wishlist = await WishListSchema.findByIdAndDelete(id);
             const findUser = await UserSchema.findById(wishlist.user);
             await findUser.wishlist.remove(id);
-            return findUser.save();
+            await findUser.save();
+
+            return wishlist;
           } catch (err) {
-            console.log(arr);
+            console.log(err);
           }
         }
         return deleteWishlist();
