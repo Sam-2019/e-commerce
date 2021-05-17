@@ -623,7 +623,6 @@ const RootMutation = new GraphQLObjectType({
             await findUser.save();
             return cart;
           } catch (err) {
-            // catches errors both in fetch and response.json
             console.log(err);
           }
         }
