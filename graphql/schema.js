@@ -535,23 +535,70 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { user, product, price, quantity }) {
-        const cart = new CartSchema({
-          user,
-          product,
-          price,
-          quantity,
-        });
-
-        cart
-          .save()
-          .then((result) => {
-            return UserSchema.findById(user);
-          })
-          .then((user) => {
-            user.cart.push(cart);
-            return user.save();
+        async function addCart() {
+          const cart = new CartSchema({
+            user,
+            product,
+            price,
+            quantity,
           });
-        return cart;
+
+          try {
+            const findProduct = await CartSchema.findOne({
+              product: cart.product,
+            });
+
+            // const findUser = await CartSchema.findOne({
+            //   user: cart.user,
+            // });
+
+            //   console.log(findProduct);
+            // console.log(findUser);
+
+            if (!findProduct) {
+              const saveItem = () => {
+                return cart
+                  .save()
+                  .then((result) => {
+                    return UserSchema.findById(user);
+                  })
+                  .then((user) => {
+                    user.cart.push(cart);
+                    return user.save();
+                  });
+              };
+
+              return saveItem();
+            }
+
+            if (findProduct) {
+              // console.log("match");
+              const cartUser = String(cart.user);
+              const productUser = String(findProduct.user);
+              const productID = String(findProduct.id);
+
+              //console.log(typeof cartUser);
+              // console.log(typeof productUser);
+
+              if (cartUser === productUser) {
+                //console.log("another match");
+                const updateQuantity = await CartSchema.findOneAndUpdate(
+                  { _id: productID },
+                  { $set: { quantity } },
+                  { omitUndefined: false,}
+                );
+                //  console.log(updateProduct)
+                return updateQuantity;
+              } else {
+                console.log("no content");
+              }
+            }
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return addCart();
       },
     },
 
