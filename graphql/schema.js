@@ -725,15 +725,17 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        const wishlist = WishListSchema.findByIdAndDelete(id)
-          .then((result) => {
-            return UserSchema.findById(result.user);
-          })
-          .then((data) => {
-            data.wishlist.remove(id);
-            return data.save();
-          });
-        return wishlist;
+        async function deleteWishlist() {
+          try {
+            const wishlist = await WishListSchema.findByIdAndDelete(id);
+            const findUser = await UserSchema.findById(wishlist.user);
+            await findUser.wishlist.remove(id);
+            return findUser.save();
+          } catch (err) {
+            console.log(arr);
+          }
+        }
+        return deleteWishlist();
       },
     },
 
