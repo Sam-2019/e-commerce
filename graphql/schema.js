@@ -43,6 +43,7 @@ const UserType = new GraphQLObjectType({
     first_name: { type: GraphQLString },
     last_name: { type: GraphQLString },
     email: { type: GraphQLString },
+    photoURL: { type: GraphQLString },
     phone_number: { type: GraphQLString },
     verified: { type: GraphQLBoolean },
     cart: { type: GraphQLList(CartType) },
@@ -461,24 +462,15 @@ const RootMutation = new GraphQLObjectType({
         phone_number: {
           type: GraphQLInt,
         },
-        verified: {
-          type: GraphQLBoolean,
-        },
       },
       resolve(
         parentValue,
-        {
-          username,
-          password,
-          first_name,
-          last_name,
-          email,
-          phone_number,
-          verified = false,
-        }
+        { username, password, first_name, last_name, email, phone_number }
       ) {
         async function signup() {
           const hashedPassword = await bcrypt.hash(password, 12);
+          const genericImage =
+            "https://www.beautifulpeople.com/cdn/beautifulpeople/images/default_profile/signup_male.png";
 
           const user = new UserSchema({
             username: username,
@@ -487,7 +479,8 @@ const RootMutation = new GraphQLObjectType({
             last_name: last_name,
             email: email,
             phone_number: phone_number,
-            verified: verified,
+            verified: false,
+            photoURL: genericImage,
           });
 
           try {
@@ -553,6 +546,44 @@ const RootMutation = new GraphQLObjectType({
         }
 
         return verifyUser();
+      },
+    },
+
+    photoUser: {
+      type: UserType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        photoURL: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve(parentValue, { id, photoURL }) {
+        async function photoUser() {
+          try {
+            const photo = await UserSchema.updateOne(
+              { _id: id },
+              {
+                $set: {
+                  photoURL,
+                },
+              },
+              { omitUndefined: false }
+            );
+
+            photo;
+
+            return {
+              id: id,
+              photoURL: photoURL,
+            };
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return photoUser();
       },
     },
 
