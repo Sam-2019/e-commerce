@@ -672,15 +672,18 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        const order = OrderSchema.findByIdAndDelete(id)
-          .then((result) => {
-            return UserSchema.findById(result.user);
-          })
-          .then((data) => {
-            data.order.remove(id);
-            return data.save();
-          });
-        return order;
+        async function deleteOrder() {
+          try {
+            const order = await OrderSchema.findByIdAndDelete(id);
+            const findUser = await UserSchema.findById(order.user);
+            await findUser.order.remove(id);
+            return findUser.save();
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return deleteOrder();
       },
     },
 
@@ -695,25 +698,24 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { user, product }) {
-        function createWishlist() {
-          const wishlist = new WishListSchema({
-            user,
-            product,
-          });
-          wishlist
-            .save()
-            .then((result) => {
-              return UserSchema.findById(result.user);
-            })
-            .then((data) => {
-              data.wishlist.push(wishlist);
-              return data.save();
-            });
+        const wishlist = new WishListSchema({
+          user,
+          product,
+        });
 
-          return wishlist;
+        async function addWishlist() {
+          try {
+            const saveItem = await wishlist.save();
+            const findUser = await UserSchema.findById(saveItem.user);
+
+            await findUser.wishlist.push(wishlist);
+            return findUser.save();
+          } catch (err) {
+            console.log(err);
+          }
         }
 
-        return createWishlist();
+        return addWishlist();
       },
     },
 
@@ -756,38 +758,45 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { user, product, rating, text }) {
+        const review = new ReviewSchema({
+          user,
+          product,
+          rating,
+          text,
+        });
+
         function createReview() {
-          const review = new ReviewSchema({
-            user,
-            product,
-            rating,
-            text,
-          });
-          review.save().then((result) => {
-            const find = async () => {
-              const findProduct = await ProductSchema.findById(result.product);
-              const findUser = await UserSchema.findById(result.user);
+          try {
+            review.save().then((result) => {
+              const find = async () => {
+                const findProduct = await ProductSchema.findById(
+                  result.product
+                );
+                const findUser = await UserSchema.findById(result.user);
 
-              const multipleSave = async () => {
-                await findProduct.review.push(review);
-                await findUser.review.push(review);
+                const multipleSave = async () => {
+                  await findProduct.review.push(review);
+                  await findUser.review.push(review);
 
-                return findProduct.save(), findUser.save();
+                  return findProduct.save(), findUser.save();
+                };
+
+                return multipleSave();
               };
 
-              return multipleSave();
-            };
+              return find();
+              // return ProductSchema.findById(result.product);
+            });
+            // .then((data) => {
+            //   console.log(data);
+            //   data.review.push(review);
+            //   return data.save();
+            // });
 
-            return find();
-            // return ProductSchema.findById(result.product);
-          });
-          // .then((data) => {
-          //   console.log(data);
-          //   data.review.push(review);
-          //   return data.save();
-          // });
-
-          return review;
+            return review;
+          } catch (err) {
+            console.log(err);
+          }
         }
 
         return createReview();
@@ -803,22 +812,26 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve(parentValue, { id }) {
         async function deleteReview() {
-          const removeReview = await ReviewSchema.findByIdAndDelete(id);
+          try {
+            const removeReview = await ReviewSchema.findByIdAndDelete(id);
 
-          const findProduct = await ProductSchema.findById(
-            removeReview.product
-          );
+            const findProduct = await ProductSchema.findById(
+              removeReview.product
+            );
 
-          const findUser = await UserSchema.findById(removeReview.user);
+            const findUser = await UserSchema.findById(removeReview.user);
 
-          const multipleDelete = async () => {
-            await findProduct.review.remove(id);
-            await findUser.review.remove(id);
+            const multipleDelete = async () => {
+              await findProduct.review.remove(id);
+              await findUser.review.remove(id);
 
-            return findProduct.save(), findUser.save();
-          };
+              return findProduct.save(), findUser.save();
+            };
 
-          return multipleDelete();
+            return multipleDelete();
+          } catch (err) {
+            console.log(err);
+          }
         }
 
         return deleteReview();
@@ -833,3 +846,6 @@ const DataSchema = new GraphQLSchema({
 });
 
 module.exports = DataSchema;
+
+// 0242 315960
+// Auntie Christie
