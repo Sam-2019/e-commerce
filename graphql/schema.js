@@ -21,6 +21,7 @@ const ReviewSchema = require("../db/schema/review");
 const ProductType = new GraphQLObjectType({
   name: "ProductType",
   fields: () => ({
+    cartID: { type: GraphQLID },
     id: { type: GraphQLID },
     name: { type: GraphQLString },
     sku: { type: GraphQLString },
@@ -214,6 +215,7 @@ const RootQuery = new GraphQLObjectType({
               // console.log(result.product);
               return {
                 ...result._doc,
+                cartID: result.id,
                 id: result.product.id,
                 name: result.product.name,
                 author: result.product.author,
@@ -546,15 +548,18 @@ const RootMutation = new GraphQLObjectType({
         id: {
           type: new GraphQLNonNull(GraphQLID),
         },
+        user: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
       },
-      resolve(parentValue, { id }) {
+      resolve(parentValue, { id, user }) {
         async function deleteCart() {
           try {
             const cart = CartSchema.findByIdAndDelete(id);
-            const { user } = await cart;
+            //const { user } = await cart;
+           // console.log(cart);
             const findUser = await UserSchema.findById(user);
-            //     console.log(findUser);
-
+            ///  console.log(findUser);
             await findUser.cart.remove(id);
             await findUser.save();
             return cart;
