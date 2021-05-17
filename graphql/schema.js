@@ -21,7 +21,6 @@ const ReviewSchema = require("../db/schema/review");
 const ProductType = new GraphQLObjectType({
   name: "ProductType",
   fields: () => ({
-    cartID: { type: GraphQLID },
     id: { type: GraphQLID },
     name: { type: GraphQLString },
     sku: { type: GraphQLString },
@@ -59,6 +58,20 @@ const CartType = new GraphQLObjectType({
     product: { type: ProductType },
     price: { type: GraphQLString },
     quantity: { type: GraphQLString },
+  }),
+});
+
+const CartProductType = new GraphQLObjectType({
+  name: "CartProductType",
+  fields: () => ({
+    cartID: { type: GraphQLID },
+    productID: { type: GraphQLID },
+    name: { type: GraphQLString },
+    sku: { type: GraphQLString },
+    author: { type: GraphQLString },
+    price: { type: GraphQLString },
+    imageURL: { type: GraphQLString },
+    quantity: { type: GraphQLInt },
   }),
 });
 
@@ -198,7 +211,7 @@ const RootQuery = new GraphQLObjectType({
     },
 
     carts: {
-      type: new GraphQLList(ProductType),
+      type: new GraphQLList(CartProductType),
       args: {
         id: {
           type: new GraphQLNonNull(GraphQLID),
@@ -216,13 +229,13 @@ const RootQuery = new GraphQLObjectType({
               return {
                 ...result._doc,
                 cartID: result.id,
-                id: result.product.id,
+                productID: result.product.id,
                 name: result.product.name,
                 author: result.product.author,
                 sku: result.product.sku,
                 price: result.product.price,
                 imageURL: result.product.imageURL,
-                quantity: result.product.quantity,
+                quantity: result.quantity,
               };
             });
           });
