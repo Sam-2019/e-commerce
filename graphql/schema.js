@@ -177,10 +177,12 @@ const RootQuery = new GraphQLObjectType({
           try {
             const user = await UserSchema.findOne({ email });
 
+            console.log(user);
+
             const isEqual = await bcrypt.compare(password, user.password);
 
             const check = () => {
-              if (!result) {
+              if (!user) {
                 return new Error("User does not exist");
               }
 
@@ -189,7 +191,7 @@ const RootQuery = new GraphQLObjectType({
               }
 
               const token = jwt.sign(
-                { userId: result._id, email: result.email },
+                { userId: user._id, email: user.email },
                 "somesupersecretkey",
                 {
                   expiresIn: "1h",
@@ -197,8 +199,8 @@ const RootQuery = new GraphQLObjectType({
               );
 
               return {
-                user: result.id,
-                token,
+                user: user.id,
+                token: token,
                 tokenexpiration: 1,
               };
             };
