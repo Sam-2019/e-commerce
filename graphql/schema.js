@@ -78,6 +78,18 @@ const CartProductType = new GraphQLObjectType({
   }),
 });
 
+const WishListProductType = new GraphQLObjectType({
+  name: "WishListProductType",
+  fields: () => ({
+    wishID: { type: GraphQLID },
+    productID: { type: GraphQLID },
+    name: { type: GraphQLString },
+    sku: { type: GraphQLString },
+    price: { type: GraphQLString },
+    imageURL: { type: GraphQLString },
+  }),
+});
+
 const OrderType = new GraphQLObjectType({
   name: "OrderType",
   fields: () => ({
@@ -286,14 +298,28 @@ const RootQuery = new GraphQLObjectType({
     },
 
     wishlist: {
-      type: WishListType,
+      type: new GraphQLList(WishListProductType),
       args: {
         id: {
           type: new GraphQLNonNull(GraphQLID),
         },
       },
       resolve(parentValue, { id }) {
-        return WishListSchema.findById(id);
+        return WishListSchema.find({ user: id })
+          .populate("product")
+          .then((results) => {
+            return results.map((result) => {
+              return {
+                ...result._doc,
+                wishID: result.id,
+                productID: result.product.id,
+                name: result.product.name,
+                sku: result.product.sku,
+                price: result.product.price,
+                imageURL: result.product.imageURL,
+              };
+            });
+          });
       },
     },
 
@@ -837,7 +863,7 @@ const RootMutation = new GraphQLObjectType({
             const findProduct = await WishListSchema.findOne({
               product,
             });
-           // console.log(findProduct);
+            // console.log(findProduct);
             const wishlistUser = String(user);
             const wishlistProduct = String(product);
 
@@ -855,8 +881,8 @@ const RootMutation = new GraphQLObjectType({
               const productUser = String(findProduct.user);
               const productID = await String(findProduct.product);
 
-            //  console.log(wishlistProduct);
-            //  console.log(productID);
+              //  console.log(wishlistProduct);
+              //  console.log(productID);
 
               if (wishlistProduct === productID) {
                 return;
