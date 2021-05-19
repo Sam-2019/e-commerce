@@ -1,6 +1,4 @@
-# Backend
-
-For [Online Bookshop](https://mokukus.netlify.app).
+# Backend For [Online Bookshop](https://mokukus.netlify.app).
 
 ## General Info
 
