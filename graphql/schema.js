@@ -74,7 +74,7 @@ const CartProductType = new GraphQLObjectType({
     author: { type: GraphQLString },
     price: { type: GraphQLString },
     imageURL: { type: GraphQLString },
-    quantity: { type: GraphQLInt },
+    quantity: { type: GraphQLString },
   }),
 });
 
@@ -982,9 +982,15 @@ const RootMutation = new GraphQLObjectType({
   },
 });
 
+const RootSubscription = new GraphQLObjectType({
+  name: "RootSubscriptionType",
+  fields: {},
+});
+
 const DataSchema = new GraphQLSchema({
   query: RootQuery,
   mutation: RootMutation,
+  subscription: RootSubscription,
 });
 
 module.exports = DataSchema;
