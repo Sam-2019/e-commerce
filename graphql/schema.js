@@ -838,6 +838,8 @@ const RootMutation = new GraphQLObjectType({
               product: cart.product,
             });
 
+            conssole.log(findProduct);
+
             const wishlistUser = String(wishlist.user);
             const wishlistProduct = String(wishlist.product);
 
