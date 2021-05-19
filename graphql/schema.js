@@ -982,15 +982,11 @@ const RootMutation = new GraphQLObjectType({
   },
 });
 
-const RootSubscription = new GraphQLObjectType({
-  name: "RootSubscriptionType",
-  fields: {},
-});
+
 
 const DataSchema = new GraphQLSchema({
   query: RootQuery,
-  mutation: RootMutation,
-  subscription: RootSubscription,
+  mutation: RootMutation
 });
 
 module.exports = DataSchema;
