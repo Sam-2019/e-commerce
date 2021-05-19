@@ -1,13 +1,17 @@
-# Backend For [Online Bookshop](https://mokukus.netlify.app).
+# Backend
+
+For [Online Bookshop](https://mokukus.netlify.app).
 
 ## General Info
 
 Perform CRUD functionalites for
 
 - User
+- Book
 - Cart
 - Order
 - Wishlist
+- Review
 
 ## Technologies
 
