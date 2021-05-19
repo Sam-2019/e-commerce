@@ -835,30 +835,31 @@ const RootMutation = new GraphQLObjectType({
         async function addWishlist() {
           try {
             const findProduct = await WishListSchema.findOne({
-              product: cart.product,
+              product,
             });
-
-            conssole.log(findProduct);
-
-            const wishlistUser = String(wishlist.user);
-            const wishlistProduct = String(wishlist.product);
+           // console.log(findProduct);
+            const wishlistUser = String(user);
+            const wishlistProduct = String(product);
 
             if (!findProduct) {
               const saveItem = await wishlist.save();
+              // console.log(saveItem);
               const findUser = await UserSchema.findById(saveItem.user);
 
               await findUser.wishlist.push(wishlist);
               await findUser.save();
-
               return wishlist;
             }
 
             if (findProduct) {
               const productUser = String(findProduct.user);
-              const productID = String(findProduct.id);
+              const productID = await String(findProduct.product);
+
+            //  console.log(wishlistProduct);
+            //  console.log(productID);
 
               if (wishlistProduct === productID) {
-                return "Item already exist ";
+                return;
               }
             }
           } catch (err) {
