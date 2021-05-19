@@ -25,6 +25,6 @@ Project is created with:
 
 ## Demo
 
-Here is a working [Demo](https://learngraphqlserver.herokuapp.com/graphql)
+Here is a working [Demo](https://new-ecommerce-be.herokuapp.com/graphql)
 
 Distributed under the MIT License. See `LICENSE` for more information.
