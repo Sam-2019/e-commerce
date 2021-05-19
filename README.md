@@ -7,7 +7,7 @@ For [Online Bookshop](https://mokukus.netlify.app).
 Perform CRUD functionalites for
 
 - User
-- Book
+- Product
 - Cart
 - Order
 - Wishlist
