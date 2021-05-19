@@ -686,6 +686,7 @@ const RootMutation = new GraphQLObjectType({
             // console.log(findUser);
 
             const cartUser = String(cart.user);
+            const cartProduct = String(cart.product);
 
             if (!findProduct) {
               const saveItem = async () => {
@@ -706,20 +707,17 @@ const RootMutation = new GraphQLObjectType({
               const productUser = String(findProduct.user);
               const productID = String(findProduct.id);
 
-              //console.log(typeof cartUser);
-              // console.log(typeof productUser);
-
-              if (cartUser === productUser) {
+              if (cartProduct === productID) {
                 //console.log("another match");
-                const updateQuantity = await CartSchema.findOneAndUpdate(
-                  { _id: productID },
-                  { $set: { quantity } },
-                  { omitUndefined: false }
-                );
-                //  console.log(updateProduct)
-                return updateQuantity;
-              } else {
-                console.log("no content");
+                // const updateQuantity = await CartSchema.findOneAndUpdate(
+                //   { _id: productID },
+                //   { $set: { quantity } },
+                //   { omitUndefined: false }
+                // );
+
+                // return updateQuantity;
+
+                return "Item already exist ";
               }
             }
           } catch (err) {
@@ -841,6 +839,7 @@ const RootMutation = new GraphQLObjectType({
             });
 
             const wishlistUser = String(wishlist.user);
+            const wishlistProduct = String(wishlist.product);
 
             if (!findProduct) {
               const saveItem = await wishlist.save();
@@ -856,7 +855,7 @@ const RootMutation = new GraphQLObjectType({
               const productUser = String(findProduct.user);
               const productID = String(findProduct.id);
 
-              if (wishlistUser === productUser) {
+              if (wishlistProduct === productID) {
                 return "Item already exist ";
               }
             }
@@ -982,11 +981,9 @@ const RootMutation = new GraphQLObjectType({
   },
 });
 
-
-
 const DataSchema = new GraphQLSchema({
   query: RootQuery,
-  mutation: RootMutation
+  mutation: RootMutation,
 });
 
 module.exports = DataSchema;
