@@ -804,6 +804,7 @@ const RootMutation = new GraphQLObjectType({
         async function createOrder() {
           try {
             const saveItem = order.save();
+            console.log(saveItem);
 
             const findUser = UserSchema.findById(saveItem.user);
             await findUser.order.push(order);
@@ -811,7 +812,7 @@ const RootMutation = new GraphQLObjectType({
 
             return order;
           } catch (err) {
-            console.log(errr);
+            console.log(err);
           }
         }
 
