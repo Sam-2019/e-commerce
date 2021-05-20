@@ -803,10 +803,12 @@ const RootMutation = new GraphQLObjectType({
 
         async function createOrder() {
           try {
-            const saveItem = order.save();
-            console.log(saveItem);
+            const saveItem = await order.save();
+            //  console.log(saveItem);
 
-            const findUser = UserSchema.findById(saveItem.user);
+            const findUser = await UserSchema.findOne({ _id: saveItem.user });
+            //console.log(findUser);
+
             await findUser.order.push(order);
             await findUser.save();
 
