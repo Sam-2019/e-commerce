@@ -19,6 +19,8 @@ const OrderSchema = require("../db/schema/order");
 const WishListSchema = require("../db/schema/wishlist");
 const ReviewSchema = require("../db/schema/review");
 
+const LocationSchema = require("../db/schema/location");
+
 const ProductType = new GraphQLObjectType({
   name: "ProductType",
   fields: () => ({
@@ -125,6 +127,15 @@ const LoginType = new GraphQLObjectType({
     user: { type: GraphQLID },
     token: { type: GraphQLString },
     tokenexpiration: { type: GraphQLInt },
+  }),
+});
+
+const LocationType = new GraphQLObjectType({
+  name: "LocationType",
+  fields: () => ({
+    id: { type: GraphQLID },
+    location: { type: GraphQLString },
+    fee: { type: GraphQLString },
   }),
 });
 
@@ -339,6 +350,13 @@ const RootQuery = new GraphQLObjectType({
       },
       resolve(parentValue, { id }) {
         return ReviewSchema.findById(id);
+      },
+    },
+
+    location: {
+      type: new GraphQLList(LocationType),
+      resolve(parentValue, args) {
+        return LocationSchema.find();
       },
     },
   }),
@@ -1008,6 +1026,99 @@ const RootMutation = new GraphQLObjectType({
         }
 
         return deleteReview();
+      },
+    },
+
+    addLocation: {
+      type: LocationType,
+      args: {
+        location: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+        fee: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve(parentValue, { location, fee }) {
+        const userLocation = new LocationSchema({
+          location,
+          fee,
+        });
+        async function addLocation() {
+          try {
+            await userLocation.save();
+
+            return userLocation;
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return addLocation();
+      },
+    },
+
+    updateLocation: {
+      type: LocationType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        location: {
+          type: GraphQLString,
+        },
+        fee: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parentValue, { id, location, fee }) {
+        async function updateLocation() {
+          try {
+            const update = await LocationSchema.updateOne(
+              { _id: id },
+              {
+                $set: {
+                  location,
+                  fee,
+                },
+              },
+              { omitUndefined: false }
+            );
+
+            update;
+
+            return {
+              id,
+              location,
+              fee,
+            };
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return updateLocation();
+      },
+    },
+
+    deleteLocation: {
+      type: LocationType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        async function deleteLocation() {
+          try {
+            const deleteItem = await LocationSchema.findByIdAndDelete(id);
+            return deleteItem;
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return deleteLocation();
       },
     },
   },
