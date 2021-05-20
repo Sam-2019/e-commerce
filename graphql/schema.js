@@ -811,7 +811,7 @@ const RootMutation = new GraphQLObjectType({
 
             return order;
           } catch (err) {
-            console.log(errr);
+            console.log(err);
           }
         }
 
