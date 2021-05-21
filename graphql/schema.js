@@ -109,9 +109,13 @@ const OrderItemType = new GraphQLObjectType({
   name: "OrderItemType",
   fields: () => ({
     id: { type: GraphQLID },
-    orderID: { type: GraphQLID },
-    product: { type: GraphQLID },
+    name: { type: GraphQLString },
+    sku: { type: GraphQLString },
+    author: { type: GraphQLString },
+    price: { type: GraphQLString },
+    imageURL: { type: GraphQLString },
     quantity: { type: GraphQLString },
+    status: { type: GraphQLString },
   }),
 });
 
@@ -303,23 +307,48 @@ const RootQuery = new GraphQLObjectType({
       },
     },
 
-    order: {
-      type: OrderType,
+    userOrder: {
+      type: new GraphQLList(OrderItemType),
       args: {
         id: {
           type: new GraphQLNonNull(GraphQLID),
         },
       },
       resolve(parentValue, { id }) {
-        return OrderSchema.find({ user: id })
-          .populate("product")
-          .then((results) => {
-            //  console.log(results.products);
+        async function userOrder() {
+          try {
+            const findUser = await OrderItemSchema.find({
+              user: id,
+            }).populate(["product", "orderID"]);
 
-            return results.map((result) => {
-              console.log(result.products);
+           // console.log(findUser);
+
+            // console.log(findUser.orderID);
+            let productStatus;
+            for (x of findUser) {
+              productStatus = x.orderID.status;
+            }
+
+            return findUser.map((result) => {
+              // console.log(result.product);
+              return {
+                ...result._doc,
+                id: result.id,
+                name: result.product.name,
+                author: result.product.author,
+                sku: result.product.sku,
+                price: result.product.price,
+                imageURL: result.product.imageURL,
+                quantity: result.quantity,
+                status: productStatus
+              };
             });
-          });
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return userOrder();
       },
     },
 
@@ -876,9 +905,10 @@ const RootMutation = new GraphQLObjectType({
                 // console.log(x);
 
                 const findQty = await CartSchema.findOne({ _id: x });
-                console.log(findQty);
+                //console.log(findQty);
 
                 const saveOrderItem = await new OrderItemSchema({
+                  user: saveItem.user,
                   orderID: saveItem.id,
                   product: findQty.product,
                   quantity: findQty.quantity,
