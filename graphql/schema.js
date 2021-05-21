@@ -98,6 +98,9 @@ const OrderType = new GraphQLObjectType({
     id: { type: GraphQLID },
     user: { type: GraphQLID },
     products: { type: GraphQLList(ProductType) },
+    order_number: { type: GraphQLString },
+    order_value: { type: GraphQLString },
+    status: { type: GraphQLString },
   }),
 });
 
@@ -297,7 +300,15 @@ const RootQuery = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        return OrderSchema.findById(id);
+        return OrderSchema.find({ user: id })
+          .populate("product")
+          .then((results) => {
+            //  console.log(results.products);
+
+            return results.map((result) => {
+              console.log(result.products);
+            });
+          });
       },
     },
 
@@ -812,25 +823,39 @@ const RootMutation = new GraphQLObjectType({
         products: {
           type: GraphQLList(GraphQLID),
         },
+        order_number: {
+          type: GraphQLString,
+        },
+        order_value: {
+          type: GraphQLString,
+        },
       },
-      resolve(parentValue, { user, products }) {
+      resolve(
+        parentValue,
+        { user, products, order_number, order_value, status = "Pending" }
+      ) {
         const order = new OrderSchema({
           user,
           products,
+          order_number,
+          order_value,
+          status,
         });
+
+        //console.log(products);
 
         async function createOrder() {
           try {
             const saveItem = await order.save();
-            //  console.log(saveItem);
 
-            const findUser = await UserSchema.findOne({ _id: saveItem.user });
-            //console.log(findUser);
+            // const findUser = await UserSchema.findOne({ _id: saveItem.user });
 
-            await findUser.order.push(order);
-            await findUser.save();
+            // for (x of products) {
+            //   await findUser.order.push(x);
+            //   await findUser.save();
+            // }
 
-            return order;
+            return saveItem;
           } catch (err) {
             console.log(err);
           }
