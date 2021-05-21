@@ -18,7 +18,7 @@ const CartSchema = require("../db/schema/cart");
 const OrderSchema = require("../db/schema/order");
 const WishListSchema = require("../db/schema/wishlist");
 const ReviewSchema = require("../db/schema/review");
-
+const OrderItemSchema = require("../db/schema/orderItem");
 const LocationSchema = require("../db/schema/location");
 
 const ProductType = new GraphQLObjectType({
@@ -98,9 +98,20 @@ const OrderType = new GraphQLObjectType({
     id: { type: GraphQLID },
     user: { type: GraphQLID },
     products: { type: GraphQLList(ProductType) },
-    order_number: { type: GraphQLString },
-    order_value: { type: GraphQLString },
+    orderNumber: { type: GraphQLString },
+    orderValue: { type: GraphQLString },
     status: { type: GraphQLString },
+    quantity: { type: GraphQLString },
+  }),
+});
+
+const OrderItemType = new GraphQLObjectType({
+  name: "OrderItemType",
+  fields: () => ({
+    id: { type: GraphQLID },
+    orderID: { type: GraphQLID },
+    product: { type: GraphQLID },
+    quantity: { type: GraphQLString },
   }),
 });
 
@@ -823,39 +834,63 @@ const RootMutation = new GraphQLObjectType({
         products: {
           type: GraphQLList(GraphQLID),
         },
-        order_number: {
+        orderNumber: {
           type: GraphQLString,
         },
-        order_value: {
+        orderValue: {
           type: GraphQLString,
         },
       },
       resolve(
         parentValue,
-        { user, products, order_number, order_value, status = "Pending" }
+        { user, products, orderNumber, orderValue, status = "Pending" }
       ) {
-        const order = new OrderSchema({
-          user,
-          products,
-          order_number,
-          order_value,
-          status,
-        });
-
-        //console.log(products);
-
         async function createOrder() {
           try {
+            let items = [];
+
+            for (productID of products) {
+              const findProduct = await CartSchema.findOne({ _id: productID });
+              items.push(findProduct.product);
+              //console.log(items);
+            }
+
+            const order = new OrderSchema({
+              user,
+              products: items,
+              orderNumber,
+              orderValue,
+              status,
+            });
+
             const saveItem = await order.save();
 
-            // const findUser = await UserSchema.findOne({ _id: saveItem.user });
+            const findUser = await UserSchema.findById(user);
 
-            // for (x of products) {
-            //   await findUser.order.push(x);
-            //   await findUser.save();
-            // }
+            await findUser.order.push(order);
 
-            return saveItem;
+            await findUser.save();
+
+            async function saveOrderItem() {
+              for (x of products) {
+                // console.log(x);
+
+                const findQty = await CartSchema.findOne({ _id: x });
+                console.log(findQty);
+
+                const saveOrderItem = await new OrderItemSchema({
+                  orderID: saveItem.id,
+                  product: findQty.product,
+                  quantity: findQty.quantity,
+                });
+
+                await saveOrderItem.save();
+              }
+            }
+
+            await saveOrderItem();
+
+            return order;
           } catch (err) {
             console.log(err);
           }
