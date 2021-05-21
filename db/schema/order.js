@@ -13,6 +13,15 @@ const OrderSchema = new Schema(
         ref: "Product",
       },
     ],
+    orderNumber: {
+      type: String,
+    },
+    orderValue: {
+      type: String,
+    },
+    status: {
+      type: String,
+    },
   },
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
