@@ -2,3 +2,6 @@
 fastify server.js
 /graphql/text.txt
 /graphql/text
+/graphql/new schema
+/graphql/pubsub.js
+/subscription
