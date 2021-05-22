@@ -321,9 +321,6 @@ const RootQuery = new GraphQLObjectType({
               user: id,
             }).populate(["product", "orderID"]);
 
-           // console.log(findUser);
-
-            // console.log(findUser.orderID);
             let productStatus;
             for (x of findUser) {
               productStatus = x.orderID.status;
@@ -340,7 +337,7 @@ const RootQuery = new GraphQLObjectType({
                 price: result.product.price,
                 imageURL: result.product.imageURL,
                 quantity: result.quantity,
-                status: productStatus
+                status: productStatus,
               };
             });
           } catch (err) {
@@ -608,43 +605,7 @@ const RootMutation = new GraphQLObjectType({
       },
     },
 
-    verifyUser: {
-      type: UserType,
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
-        verified: {
-          type: new GraphQLNonNull(GraphQLBoolean),
-        },
-      },
-      resolve(parentValue, { id, verified }) {
-        async function verifyUser() {
-          try {
-            const verify = await UserSchema.updateOne(
-              { _id: id },
-              {
-                $set: {
-                  verified,
-                },
-              },
-              { omitUndefined: false }
-            );
 
-            verify;
-
-            return {
-              id: id,
-              verified: verified,
-            };
-          } catch (err) {
-            console.log(err);
-          }
-        }
-
-        return verifyUser();
-      },
-    },
 
     photoUser: {
       type: UserType,
@@ -708,26 +669,60 @@ const RootMutation = new GraphQLObjectType({
         phone_number: {
           type: GraphQLString,
         },
+        verified: {
+          type: GraphQLBoolean,
+        },
       },
       resolve(
         parentValue,
-        { id, username, password, first_name, last_name, email, phone_number }
+        {
+          id,
+          username,
+          password,
+          first_name,
+          last_name,
+          email,
+          phone_number,
+          verified,
+        }
       ) {
-        const find = UserSchema.updateOne(
-          { _id: id },
-          {
-            $set: {
+        async function updateUser() {
+          try {
+            // const findUser = await UserSchema.findOne({ _id: id });
+            // findUser;
+
+            const updateUser = await UserSchema.updateOne(
+              { _id: id },
+              {
+                $set: {
+                  username,
+                  password,
+                  first_name,
+                  last_name,
+                  email,
+                  phone_number,
+                  verified,
+                },
+              },
+              { omitUndefined: true }
+            );
+
+            updateUser;
+            return {
+              id,
               username,
-              password,
               first_name,
               last_name,
               email,
               phone_number,
-            },
-          },
-          { omitUndefined: false }
-        );
-        return find;
+              verified,
+            };
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return updateUser();
       },
     },
 
@@ -881,8 +876,9 @@ const RootMutation = new GraphQLObjectType({
             for (productID of products) {
               const findProduct = await CartSchema.findOne({ _id: productID });
               items.push(findProduct.product);
-              //console.log(items);
             }
+
+            console.log(items);
 
             const order = new OrderSchema({
               user,
