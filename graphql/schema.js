@@ -42,6 +42,7 @@ const UserType = new GraphQLObjectType({
     id: { type: GraphQLID },
     username: { type: GraphQLString },
     password: { type: GraphQLString },
+    new_password: { type: GraphQLString },
     first_name: { type: GraphQLString },
     last_name: { type: GraphQLString },
     email: { type: GraphQLString },
@@ -644,7 +645,93 @@ const RootMutation = new GraphQLObjectType({
       },
     },
 
-    updateUser: {
+    updateUserName: {
+      type: UserType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        first_name: {
+          type: GraphQLString,
+        },
+        last_name: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parentValue, { id, first_name, last_name }) {
+        async function updateUserName() {
+          try {
+            const updateUserName = await UserSchema.updateOne(
+              { _id: id },
+              {
+                $set: {
+                  first_name: first_name,
+                  last_name: last_name,
+                },
+              },
+              { omitUndefined: true }
+            );
+
+            updateUserName;
+            return {
+              id,
+              first_name,
+              last_name,
+            };
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return updateUserName();
+      },
+    },
+
+    updateUserEmail: {
+      type: UserType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        email: {
+          type: GraphQLString,
+        },
+        new_email: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parentValue, { id, email, new_email }) {
+        async function updateUserEmail() {
+          try {
+            const findEmail = await UserSchema.findOne({ email: email });
+            if (findEmail.email !== email) {
+              return new Error("Email is incoreect");
+            }
+            const updateUserEmail = await UserSchema.updateOne(
+              { _id: id },
+              {
+                $set: {
+                  email: new_email,
+                },
+              },
+              { omitUndefined: true }
+            );
+
+            updateUserEmail;
+            return {
+              id,
+              email: new_email,
+            };
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return updateUserEmail();
+      },
+    },
+
+    updateUserPassword: {
       type: UserType,
       args: {
         id: {
@@ -653,79 +740,92 @@ const RootMutation = new GraphQLObjectType({
         password: {
           type: GraphQLString,
         },
+        new_password: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parentValue, { id, password, new_password }) {
+        async function updateUserPassword() {
+          try {
+            const findUser = await UserSchema.findOne({ _id: id });
+            const isEqual = await bcrypt.compare(password, findUser.password);
+
+            if (!isEqual) {
+              return new Error("Password is incoreect");
+            }
+
+            const hashedPassword = await bcrypt.hash(new_password, 12);
+
+            const updateUserPassword = await UserSchema.updateOne(
+              { _id: id },
+              {
+                $set: {
+                  password: hashedPassword,
+                },
+              },
+              { omitUndefined: true }
+            );
+            updateUserPassword;
+            return {
+              id,
+            };
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return updateUserPassword();
+      },
+    },
+
+    updateUserDetail: {
+      type: UserType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
         username: {
           type: GraphQLString,
         },
-        first_name: {
-          type: GraphQLString,
-        },
-        last_name: {
-          type: GraphQLString,
-        },
-        email: {
-          type: GraphQLString,
-        },
-        new_email: {
-          type: GraphQLString,
-        },
         phone_number: {
+          type: GraphQLString,
+        },
+        photoURL: {
           type: GraphQLString,
         },
         verified: {
           type: GraphQLBoolean,
         },
       },
-      resolve(
-        parentValue,
-        {
-          id,
-          username,
-          password,
-          first_name,
-          last_name,
-          email,
-          new_email,
-          phone_number,
-          verified,
-        }
-      ) {
-        async function updateUser() {
+      resolve(parentValue, { id, username, phone_number, photoURL, verified }) {
+        async function updateUserDetails() {
           try {
-            const findEmail = await UserSchema.findOne({ email: email });
-            console.log(findEmail.email);
-            console.log(email);
-            console.log(new_email);
+            const findUser = await UserSchema.findOne({ _id: id });
+            console.log(findUser);
 
-            if (findEmail.email !== email) {
-              return;
+            if (!findUser) {
+              return "User doesn't exist";
             }
-            // const findUser = await UserSchema.findOne({ _id: id });
-            // findUser;
 
-            const updateUser = await UserSchema.updateOne(
+            const updateUserDetails = await UserSchema.updateOne(
               { _id: id },
               {
                 $set: {
-                  username: username,
-                  password: password,
-                  first_name: first_name,
-                  last_name: last_name,
-                  email: new_email,
-                  phone_number: phone_number,
-                  verified: verified,
+                  username,
+                  phone_number,
+                  photoURL,
+                  verified,
                 },
               },
               { omitUndefined: true }
             );
 
-            updateUser;
+            updateUserDetails;
             return {
               id,
               username,
-              first_name,
-              last_name,
-              email: new_email,
               phone_number,
+              photoURL,
               verified,
             };
           } catch (err) {
@@ -733,7 +833,7 @@ const RootMutation = new GraphQLObjectType({
           }
         }
 
-        return updateUser();
+        return updateUserDetails();
       },
     },
 
