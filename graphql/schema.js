@@ -45,6 +45,7 @@ const UserType = new GraphQLObjectType({
     first_name: { type: GraphQLString },
     last_name: { type: GraphQLString },
     email: { type: GraphQLString },
+    new_email: { type: GraphQLString },
     photoURL: { type: GraphQLString },
     phone_number: { type: GraphQLString },
     verified: { type: GraphQLBoolean },
@@ -605,8 +606,6 @@ const RootMutation = new GraphQLObjectType({
       },
     },
 
-
-
     photoUser: {
       type: UserType,
       args: {
@@ -666,6 +665,9 @@ const RootMutation = new GraphQLObjectType({
         email: {
           type: GraphQLString,
         },
+        new_email: {
+          type: GraphQLString,
+        },
         phone_number: {
           type: GraphQLString,
         },
@@ -682,12 +684,21 @@ const RootMutation = new GraphQLObjectType({
           first_name,
           last_name,
           email,
+          new_email,
           phone_number,
           verified,
         }
       ) {
         async function updateUser() {
           try {
+            const findEmail = await UserSchema.findOne({ email: email });
+            console.log(findEmail.email);
+            console.log(email);
+            console.log(new_email);
+
+            if (findEmail.email !== email) {
+              return;
+            }
             // const findUser = await UserSchema.findOne({ _id: id });
             // findUser;
 
@@ -695,13 +706,13 @@ const RootMutation = new GraphQLObjectType({
               { _id: id },
               {
                 $set: {
-                  username,
-                  password,
-                  first_name,
-                  last_name,
-                  email,
-                  phone_number,
-                  verified,
+                  username: username,
+                  password: password,
+                  first_name: first_name,
+                  last_name: last_name,
+                  email: new_email,
+                  phone_number: phone_number,
+                  verified: verified,
                 },
               },
               { omitUndefined: true }
@@ -713,7 +724,7 @@ const RootMutation = new GraphQLObjectType({
               username,
               first_name,
               last_name,
-              email,
+              email: new_email,
               phone_number,
               verified,
             };
