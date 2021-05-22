@@ -4,4 +4,6 @@ fastify server.js
 /graphql/text
 /graphql/new schema
 /graphql/pubsub.js
+/graphql/updateUser.js
 /subscription
+
