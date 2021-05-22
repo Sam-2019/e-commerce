@@ -704,9 +704,11 @@ const RootMutation = new GraphQLObjectType({
         async function updateUserEmail() {
           try {
             const findEmail = await UserSchema.findOne({ email: email });
+
             if (findEmail.email !== email) {
               return new Error("Email is incorrect");
             }
+            
             const updateUserEmail = await UserSchema.updateOne(
               { _id: id },
               {
@@ -751,7 +753,7 @@ const RootMutation = new GraphQLObjectType({
             const isEqual = await bcrypt.compare(password, findUser.password);
 
             if (!isEqual) {
-              return new Error("Password is incoreect");
+              return new Error("Password is incorrect");
             }
 
             const hashedPassword = await bcrypt.hash(new_password, 12);
