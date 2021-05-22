@@ -589,11 +589,11 @@ const RootMutation = new GraphQLObjectType({
             });
 
             if (findUser) {
-              return "Email already exist";
+              return new Error("Email already exist");
             }
 
             if (findUsername) {
-              return "Username already exist";
+              return new Error("Username already exist");
             }
 
             const userSignup = await user.save();
@@ -705,7 +705,7 @@ const RootMutation = new GraphQLObjectType({
           try {
             const findEmail = await UserSchema.findOne({ email: email });
             if (findEmail.email !== email) {
-              return new Error("Email is incoreect");
+              return new Error("Email is incorrect");
             }
             const updateUserEmail = await UserSchema.updateOne(
               { _id: id },
@@ -804,7 +804,7 @@ const RootMutation = new GraphQLObjectType({
             console.log(findUser);
 
             if (!findUser) {
-              return "User doesn't exist";
+              return new Error("User doesn't exist");
             }
 
             const updateUserDetails = await UserSchema.updateOne(
@@ -917,8 +917,7 @@ const RootMutation = new GraphQLObjectType({
                 // );
 
                 // return updateQuantity;
-
-                return "Item already exist ";
+                return new Error("Item already exist");
               }
             }
           } catch (err) {
@@ -1103,7 +1102,7 @@ const RootMutation = new GraphQLObjectType({
               //  console.log(productID);
 
               if (wishlistProduct === productID) {
-                return;
+                return new Error("");
               }
             }
           } catch (err) {
