@@ -182,7 +182,7 @@ const RootQuery = new GraphQLObjectType({
     },
 
     search: {
-      type: ProductType,
+      type: new GraphQLList(ProductType),
       args: {
         text: {
           type: new GraphQLNonNull(GraphQLString),
