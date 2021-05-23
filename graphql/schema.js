@@ -172,12 +172,26 @@ const RootQuery = new GraphQLObjectType({
     product: {
       type: ProductType,
       args: {
-        sku: {
+        query: {
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve(parentValue, { sku }) {
-        return ProductSchema.findOne({ sku: sku });
+      resolve(parentValue, { query }) {
+        return ProductSchema.find({ query: sku });
+      },
+    },
+
+    search: {
+      type: ProductType,
+      args: {
+        text: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve(parentValue, { text }) {
+        return ProductSchema.find({
+          $text: { $search: text, $caseSensitive: false },
+        });
       },
     },
 
@@ -324,7 +338,7 @@ const RootQuery = new GraphQLObjectType({
             }).populate(["product", "orderID"]);
 
             let productStatus;
-            for (x of findUser) {
+            for (let x of findUser) {
               productStatus = x.orderID.status;
             }
 
@@ -708,7 +722,7 @@ const RootMutation = new GraphQLObjectType({
             if (findEmail.email !== email) {
               return new Error("Email is incorrect");
             }
-            
+
             const updateUserEmail = await UserSchema.updateOne(
               { _id: id },
               {
