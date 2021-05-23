@@ -172,12 +172,12 @@ const RootQuery = new GraphQLObjectType({
     product: {
       type: ProductType,
       args: {
-        query: {
+        sku: {
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve(parentValue, { query }) {
-        return ProductSchema.findOne({ sku: query });
+      resolve(parentValue, { sku }) {
+        return ProductSchema.findOne({ sku: sku });
       },
     },
 
@@ -914,8 +914,6 @@ const RootMutation = new GraphQLObjectType({
             }
 
             if (findProduct) {
-
-
               const productUser = String(findProduct.user);
               const productID = String(findProduct.id);
 
@@ -1015,7 +1013,6 @@ const RootMutation = new GraphQLObjectType({
 
             async function saveOrderItem() {
               for (x of products) {
-
                 const findQty = await CartSchema.findOne({ _id: x });
 
                 const saveOrderItem = await new OrderItemSchema({
