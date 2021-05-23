@@ -177,7 +177,7 @@ const RootQuery = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { query }) {
-        return ProductSchema.find({ query: sku });
+        return ProductSchema.find({ sku: query });
       },
     },
 
@@ -189,9 +189,19 @@ const RootQuery = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { text }) {
-        return ProductSchema.find({
-          $text: { $search: text, $caseSensitive: false },
-        });
+        async function search() {
+          try {
+            const searchItem = await ProductSchema.find({
+              name: { $regex: text, $options: "i" },
+            });
+
+            return searchItem;
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return search();
       },
     },
 
