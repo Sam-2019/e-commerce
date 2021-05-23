@@ -244,8 +244,6 @@ const RootQuery = new GraphQLObjectType({
           try {
             const user = await UserSchema.findOne({ email });
 
-            console.log(user);
-
             const isEqual = await bcrypt.compare(password, user.password);
 
             const check = () => {
@@ -293,11 +291,7 @@ const RootQuery = new GraphQLObjectType({
         return CartSchema.find({ user: id })
           .populate("product")
           .then((results) => {
-            //      return result;
-            // console.log(result.product);
-
             return results.map((result) => {
-              // console.log(result.product);
               return {
                 ...result._doc,
                 cartID: result.id,
@@ -353,7 +347,6 @@ const RootQuery = new GraphQLObjectType({
             }
 
             return findUser.map((result) => {
-              // console.log(result.product);
               return {
                 ...result._doc,
                 id: result.id,
@@ -827,7 +820,6 @@ const RootMutation = new GraphQLObjectType({
         async function updateUserDetails() {
           try {
             const findUser = await UserSchema.findOne({ _id: id });
-            console.log(findUser);
 
             if (!findUser) {
               return new Error("User doesn't exist");
@@ -905,13 +897,6 @@ const RootMutation = new GraphQLObjectType({
               product: cart.product,
             });
 
-            // const findUser = await CartSchema.findOne({
-            //   user: cart.user,
-            // });
-
-            //   console.log(findProduct);
-            // console.log(findUser);
-
             const cartUser = String(cart.user);
             const cartProduct = String(cart.product);
 
@@ -929,7 +914,7 @@ const RootMutation = new GraphQLObjectType({
             }
 
             if (findProduct) {
-              // console.log("match");
+
 
               const productUser = String(findProduct.user);
               const productID = String(findProduct.id);
@@ -968,11 +953,9 @@ const RootMutation = new GraphQLObjectType({
       resolve(parentValue, { id, user }) {
         async function deleteCart() {
           try {
-            const cart = CartSchema.findByIdAndDelete(id);
-            //const { user } = await cart;
-            // console.log(cart);
+            const cart = await CartSchema.findByIdAndDelete(id);
+
             const findUser = await UserSchema.findById(user);
-            ///  console.log(findUser);
             await findUser.cart.remove(id);
             await findUser.save();
             return cart;
@@ -1014,8 +997,6 @@ const RootMutation = new GraphQLObjectType({
               items.push(findProduct.product);
             }
 
-            console.log(items);
-
             const order = new OrderSchema({
               user,
               products: items,
@@ -1034,10 +1015,8 @@ const RootMutation = new GraphQLObjectType({
 
             async function saveOrderItem() {
               for (x of products) {
-                // console.log(x);
 
                 const findQty = await CartSchema.findOne({ _id: x });
-                //console.log(findQty);
 
                 const saveOrderItem = await new OrderItemSchema({
                   user: saveItem.user,
@@ -1106,13 +1085,13 @@ const RootMutation = new GraphQLObjectType({
             const findProduct = await WishListSchema.findOne({
               product,
             });
-            // console.log(findProduct);
+
             const wishlistUser = String(user);
             const wishlistProduct = String(product);
 
             if (!findProduct) {
               const saveItem = await wishlist.save();
-              // console.log(saveItem);
+
               const findUser = await UserSchema.findById(saveItem.user);
 
               await findUser.wishlist.push(wishlist);
@@ -1123,9 +1102,6 @@ const RootMutation = new GraphQLObjectType({
             if (findProduct) {
               const productUser = String(findProduct.user);
               const productID = await String(findProduct.product);
-
-              //  console.log(wishlistProduct);
-              //  console.log(productID);
 
               if (wishlistProduct === productID) {
                 return new Error("");
