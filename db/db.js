@@ -5,6 +5,7 @@ mongoose.connect(keys.mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
+  autoIndex: false
 });
 
 //mongoose.connect("mongodb://localhost:27017/e-commerce", {
