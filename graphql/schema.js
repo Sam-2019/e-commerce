@@ -177,7 +177,7 @@ const RootQuery = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { query }) {
-        return ProductSchema.find({ sku: query });
+        return ProductSchema.findOne({ sku: query });
       },
     },
 
