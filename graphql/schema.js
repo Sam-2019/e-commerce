@@ -180,7 +180,7 @@ const RootQuery = new GraphQLObjectType({
           type: GraphQLInt,
         },
       },
-      resolve(parentValue, { offset =1, limit = 10 }) {
+      resolve(parentValue, { offset, limit }) {
         async function findProducts() {
           const productsCount = await ProductSchema.estimatedDocumentCount();
 
