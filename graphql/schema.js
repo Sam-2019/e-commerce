@@ -21,6 +21,14 @@ const ReviewSchema = require("../db/schema/review");
 const OrderItemSchema = require("../db/schema/orderItem");
 const LocationSchema = require("../db/schema/location");
 
+const PaginationType = new GraphQLObjectType({
+  name: "PaginationType",
+  fields: () => ({
+    count: { type: GraphQLInt },
+    data: { type: GraphQLList(ProductType) },
+  }),
+});
+
 const ProductType = new GraphQLObjectType({
   name: "ProductType",
   fields: () => ({
@@ -163,9 +171,36 @@ const RootQuery = new GraphQLObjectType({
   name: "RootQueryType",
   fields: () => ({
     products: {
-      type: new GraphQLList(ProductType),
-      resolve(parentValue, args) {
-        return ProductSchema.find();
+      type: PaginationType,
+      args: {
+        offset: {
+          type: GraphQLInt,
+        },
+        limit: {
+          type: GraphQLInt,
+        },
+      },
+      resolve(parentValue, { offset, limit }) {
+        async function findProducts() {
+          const productsCount = await ProductSchema.estimatedDocumentCount();
+
+          const ProductToLimit = (await productsCount) / limit;
+
+          if (offset > ProductToLimit) {
+            return console.log("No more products");
+          }
+
+          const data = await ProductSchema.find({})
+            .skip(limit * offset - limit)
+            .limit(limit);
+
+          return {
+            count: productsCount,
+            data: data,
+          };
+        }
+
+        return findProducts();
       },
     },
 
