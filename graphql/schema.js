@@ -393,8 +393,10 @@ const RootQuery = new GraphQLObjectType({
                 productID: result.product.id,
                 name: result.product.name,
                 sku: result.product.sku,
+                author: result.product.author,
                 price: result.product.price,
                 imageURL: result.product.imageURL,
+                quantity: result.product.quantity,
               };
             });
           });
