@@ -186,10 +186,10 @@ const RootQuery = new GraphQLObjectType({
 
          // const ProductToLimit = await (productsCount / limit);
 
-          console.log(productsCount);
-          console.log(ProductLimit);
-          console.log(offset);
-          console.log(limit);
+          // console.log(productsCount);
+          // console.log(ProductLimit);
+          // console.log(offset);
+          // console.log(limit);
 
           // if (limit > ProductToLimit) {
           //   return console.log("No more products");
