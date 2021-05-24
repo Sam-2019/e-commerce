@@ -173,8 +173,8 @@ const RootQuery = new GraphQLObjectType({
     products: {
       type: PaginationType,
       args: {
-        offset: {
-          type: GraphQLInt,
+        cursor: {
+          type: GraphQLString,
         },
         limit: {
           type: GraphQLInt,
@@ -186,9 +186,14 @@ const RootQuery = new GraphQLObjectType({
 
           const ProductToLimit = await (productsCount / limit);
 
-          if (offset > ProductToLimit) {
-            return console.log("No more products");
-          }
+          console.log(productsCount);
+          console.log(ProductLimit);
+          console.log(offset);
+          console.log(limit);
+
+          // if (limit > ProductToLimit) {
+          //   return console.log("No more products");
+          // }
 
           const data = await ProductSchema.find({})
             .skip(limit * offset - limit)
