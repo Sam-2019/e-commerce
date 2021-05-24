@@ -1,0 +1,62 @@
+interface ItemType {
+  name: String!
+  sku: String!
+  author: String!
+  price: String!
+  imageURL: String!
+  quantity: Int
+}
+
+type ProductType implements ItemType {
+  id: ID!
+  name: String!
+  sku: String!
+  author: String!
+  price: String!
+  imageURL: String!
+  quantity: Int
+  detail: String!
+  review: [ReviewType]
+}
+
+type CartProductType implements ItemType {
+  cartID: ID!
+  productID: ID!
+  name: String!
+  sku: String!
+  author: String!
+  price: String!
+  imageURL: String!
+  quantity: Int
+}
+
+type OrderItemType implements ItemType {
+  id: ID!
+  name: String!
+  sku: String!
+  author: String!
+  price: String!
+  imageURL: String!
+  quantity: Int
+  status: VerificationStatus
+}
+
+type WishListProductType implements ItemType {
+  wishID: ID!
+  productID: ID!
+  name: String!
+  sku: String!
+  author: String!
+  price: String!
+  imageURL: String!
+  quantity: Int
+}
+
+
+enum VerificationStatus {
+  TRUE
+  FALSE
+}
+
+
+//take note on Interface Queries
