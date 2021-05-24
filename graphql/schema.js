@@ -184,7 +184,7 @@ const RootQuery = new GraphQLObjectType({
         async function findProducts() {
           const productsCount = await ProductSchema.estimatedDocumentCount();
 
-          const ProductToLimit = await (productsCount / limit);
+         // const ProductToLimit = await (productsCount / limit);
 
           console.log(productsCount);
           console.log(ProductLimit);
