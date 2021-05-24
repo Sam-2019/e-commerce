@@ -173,8 +173,8 @@ const RootQuery = new GraphQLObjectType({
     products: {
       type: PaginationType,
       args: {
-        cursor: {
-          type: GraphQLString,
+        limit: {
+          type: GraphQLInt,
         },
         limit: {
           type: GraphQLInt,
