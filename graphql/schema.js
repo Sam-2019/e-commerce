@@ -173,7 +173,7 @@ const RootQuery = new GraphQLObjectType({
     products: {
       type: PaginationType,
       args: {
-        limit: {
+        offset: {
           type: GraphQLInt,
         },
         limit: {
