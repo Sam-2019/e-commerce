@@ -224,16 +224,16 @@ const RootQuery = new GraphQLObjectType({
             "user",
           ]);
 
-          let info;
+          let reviewUserInfo;
 
           for (productReview of data.review) {
             const findUser = await UserSchema.findOne({
               _id: productReview.user,
             });
-            info = findUser;
+            reviewUserInfo = findUser;
           }
 
-          const iteration = await data.review.map((result) => {
+          const reviewData = await data.review.map((result) => {
             return {
               ...result.doc,
               id: result.id,
@@ -241,8 +241,8 @@ const RootQuery = new GraphQLObjectType({
               text: result.text,
               created_at: result.created_at,
               user: {
-                first_name: info.first_name,
-                last_name: info.last_name,
+                first_name: reviewUserInfo.first_name,
+                last_name: reviewUserInfo.last_name,
               },
             };
           });
@@ -257,7 +257,7 @@ const RootQuery = new GraphQLObjectType({
             imageURL: data.imageURL,
             quantity: data.quantity,
             detail: data.detail,
-            review: iteration,
+            review: reviewData,
           };
         }
 
