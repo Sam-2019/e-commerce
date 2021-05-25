@@ -243,6 +243,7 @@ const RootQuery = new GraphQLObjectType({
               user: {
                 first_name: reviewUserInfo.first_name,
                 last_name: reviewUserInfo.last_name,
+                photoURL: reviewUserInfo.photoURL,
               },
             };
           });
