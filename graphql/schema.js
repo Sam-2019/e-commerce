@@ -142,10 +142,11 @@ const ReviewType = new GraphQLObjectType({
   name: "ReviewType",
   fields: () => ({
     id: { type: GraphQLID },
-    user: { type: GraphQLID },
+    user: { type: UserType },
     product: { type: GraphQLID },
     rating: { type: GraphQLInt },
     text: { type: GraphQLString },
+    created_at: { type: GraphQLString },
   }),
 });
 
@@ -184,7 +185,7 @@ const RootQuery = new GraphQLObjectType({
         async function findProducts() {
           const productsCount = await ProductSchema.estimatedDocumentCount();
 
-         // const ProductToLimit = await (productsCount / limit);
+          // const ProductToLimit = await (productsCount / limit);
 
           // console.log(productsCount);
           // console.log(ProductLimit);
@@ -217,7 +218,50 @@ const RootQuery = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { sku }) {
-        return ProductSchema.findOne({ sku: sku });
+        async function findProduct() {
+          const data = await ProductSchema.findOne({ sku: sku }).populate([
+            "review",
+            "user",
+          ]);
+
+          let info;
+
+          for (productReview of data.review) {
+            const findUser = await UserSchema.findOne({
+              _id: productReview.user,
+            });
+            info = findUser;
+          }
+
+          const iteration = await data.review.map((result) => {
+            return {
+              ...result.doc,
+              id: result.id,
+              rating: result.rating,
+              text: result.text,
+              created_at: result.created_at,
+              user: {
+                first_name: info.first_name,
+                last_name: info.last_name,
+              },
+            };
+          });
+
+          return {
+            ...data._doc,
+            id: data.id,
+            name: data.name,
+            sku: data.sku,
+            author: data.iauthord,
+            price: data.price,
+            imageURL: data.imageURL,
+            quantity: data.quantity,
+            detail: data.detail,
+            review: iteration,
+          };
+        }
+
+        return findProduct();
       },
     },
 
@@ -445,8 +489,38 @@ const RootQuery = new GraphQLObjectType({
 
     reviews: {
       type: new GraphQLList(ReviewType),
-      resolve(parentValue, args) {
-        return ReviewSchema.find();
+      args: {
+        sku: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve(parentValue, { sku }) {
+        async function review() {
+          try {
+            const findProduct = await ProductSchema.findOne({ sku: sku });
+
+            const reviews = await ReviewSchema.find({
+              product: findProduct._id,
+            }).populate("user");
+            return reviews.map((result) => {
+              return {
+                ...result._doc,
+                id: result.id,
+                user: {
+                  first_name: result.user.first_name,
+                  last_name: result.user.last_name,
+                  photoURL: result.user.photoURL,
+                },
+                rating: result.rating,
+                text: result.text,
+                created_at: result.created_at,
+              };
+            });
+          } catch (err) {
+            console.log(err);
+          }
+        }
+        return review();
       },
     },
 
