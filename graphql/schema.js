@@ -235,7 +235,7 @@ const RootQuery = new GraphQLObjectType({
             reviewUserInfo = findUser;
           }
 
-          console.log(reviewUserInfo);
+          //console.log(reviewUserInfo);
 
           // const idk = reviewUserInfo.map((result) => {
           //   return {
