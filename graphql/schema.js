@@ -262,18 +262,18 @@ const RootQuery = new GraphQLObjectType({
 
           console.log(reviewData);
 
-          // return {
-          //   ...data._doc,
-          //   id: data.id,
-          //   name: data.name,
-          //   sku: data.sku,
-          //   author: data.iauthord,
-          //   price: data.price,
-          //   imageURL: data.imageURL,
-          //   quantity: data.quantity,
-          //   detail: data.detail,
-          //   review: reviewData,
-          // };
+          return {
+            ...data._doc,
+            id: data.id,
+            name: data.name,
+            sku: data.sku,
+            author: data.iauthord,
+            price: data.price,
+            imageURL: data.imageURL,
+            quantity: data.quantity,
+            detail: data.detail,
+            review: reviewData,
+          };
         }
 
         return findProduct();
