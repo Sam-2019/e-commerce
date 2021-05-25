@@ -252,7 +252,11 @@ const RootQuery = new GraphQLObjectType({
               rating: result.rating,
               text: result.text,
               created_at: result.created_at,
-              //    user:
+              user: {
+                first_name: reviewUserInfo.first_name,
+                last_name: reviewUserInfo.last_name,
+                photoURL: reviewUserInfo.photoURL,
+              },
             };
           });
 
