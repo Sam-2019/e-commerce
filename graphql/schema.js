@@ -230,8 +230,20 @@ const RootQuery = new GraphQLObjectType({
             const findUser = await UserSchema.findOne({
               _id: productReview.user,
             });
+
+            //  reviewUserInfo.push(findUser);
             reviewUserInfo = findUser;
           }
+
+          console.log(reviewUserInfo);
+
+          // const idk = reviewUserInfo.map((result) => {
+          //   return {
+          //     first_name: result.first_name,
+          //     last_name: result.last_name,
+          //     photoURL: result.photoURL,
+          //   };
+          // });
 
           const reviewData = await data.review.map((result) => {
             return {
@@ -240,26 +252,24 @@ const RootQuery = new GraphQLObjectType({
               rating: result.rating,
               text: result.text,
               created_at: result.created_at,
-              user: {
-                first_name: reviewUserInfo.first_name,
-                last_name: reviewUserInfo.last_name,
-                photoURL: reviewUserInfo.photoURL,
-              },
+              //    user:
             };
           });
 
-          return {
-            ...data._doc,
-            id: data.id,
-            name: data.name,
-            sku: data.sku,
-            author: data.iauthord,
-            price: data.price,
-            imageURL: data.imageURL,
-            quantity: data.quantity,
-            detail: data.detail,
-            review: reviewData,
-          };
+          console.log(reviewData);
+
+          // return {
+          //   ...data._doc,
+          //   id: data.id,
+          //   name: data.name,
+          //   sku: data.sku,
+          //   author: data.iauthord,
+          //   price: data.price,
+          //   imageURL: data.imageURL,
+          //   quantity: data.quantity,
+          //   detail: data.detail,
+          //   review: reviewData,
+          // };
         }
 
         return findProduct();
@@ -503,6 +513,7 @@ const RootQuery = new GraphQLObjectType({
             const reviews = await ReviewSchema.find({
               product: findProduct._id,
             }).populate("user");
+
             return reviews.map((result) => {
               return {
                 ...result._doc,
