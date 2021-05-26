@@ -10,6 +10,7 @@ const ProductSchema = new Schema({
   },
   sku: {
     type: String,
+    lowercase: true
   },
   price: {
     type: String,
