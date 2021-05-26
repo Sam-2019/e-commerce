@@ -40,6 +40,7 @@ const ProductType = new GraphQLObjectType({
     imageURL: { type: GraphQLString },
     quantity: { type: GraphQLInt },
     detail: { type: GraphQLString },
+    rating: { type: GraphQLInt },
     review: { type: GraphQLList(ReviewType) },
   }),
 });
@@ -219,6 +220,8 @@ const RootQuery = new GraphQLObjectType({
       },
       resolve(parentValue, { sku }) {
         async function findProduct() {
+          let ratingArray = [];
+          let productRating;
           const data = await ProductSchema.findOne({ sku: sku }).populate([
             "review",
           ]);
@@ -226,6 +229,18 @@ const RootQuery = new GraphQLObjectType({
           const reviews = await ReviewSchema.find({
             product: data._id,
           }).populate("user");
+
+          for (review of reviews) {
+            const productRatings = review.rating;
+            ratingArray.push(productRatings);
+          }
+
+          if (ratingArray.length === 0) {
+            productRating = 0;
+          } else {
+            const sum = await ratingArray.reduce((a, b) => a + b);
+            productRating = sum / ratingArray.length;
+          }
 
           const reviewData = reviews.map((result) => {
             return {
@@ -252,6 +267,7 @@ const RootQuery = new GraphQLObjectType({
             imageURL: data.imageURL,
             quantity: data.quantity,
             detail: data.detail,
+            rating: productRating,
             review: reviewData,
           };
         }
