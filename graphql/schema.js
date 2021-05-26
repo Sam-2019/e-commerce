@@ -221,53 +221,33 @@ const RootQuery = new GraphQLObjectType({
         async function findProduct() {
           const data = await ProductSchema.findOne({ sku: sku }).populate([
             "review",
-            "user",
           ]);
 
-          let reviewUserInfo;
+          const reviews = await ReviewSchema.find({
+            product: data._id,
+          }).populate("user");
 
-          for (productReview of data.review) {
-            const findUser = await UserSchema.findOne({
-              _id: productReview.user,
-            });
-
-            //  reviewUserInfo.push(findUser);
-            reviewUserInfo = findUser;
-          }
-
-          //console.log(reviewUserInfo);
-
-          // const idk = reviewUserInfo.map((result) => {
-          //   return {
-          //     first_name: result.first_name,
-          //     last_name: result.last_name,
-          //     photoURL: result.photoURL,
-          //   };
-          // });
-
-          const reviewData = await data.review.map((result) => {
+          const reviewData = reviews.map((result) => {
             return {
-              ...result.doc,
+              ...result._doc,
               id: result.id,
+              user: {
+                first_name: result.user.first_name,
+                last_name: result.user.last_name,
+                photoURL: result.user.photoURL,
+              },
               rating: result.rating,
               text: result.text,
               created_at: result.created_at,
-              user: {
-                first_name: reviewUserInfo.first_name,
-                last_name: reviewUserInfo.last_name,
-                photoURL: reviewUserInfo.photoURL,
-              },
             };
           });
-
-          console.log(reviewData);
 
           return {
             ...data._doc,
             id: data.id,
             name: data.name,
             sku: data.sku,
-            author: data.iauthord,
+            author: data.author,
             price: data.price,
             imageURL: data.imageURL,
             quantity: data.quantity,
