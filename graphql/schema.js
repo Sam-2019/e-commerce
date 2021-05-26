@@ -8,6 +8,7 @@ const {
   GraphQLNonNull,
   GraphQLID,
   GraphQLBoolean,
+  GraphQLFloat,
 } = graphql;
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -40,7 +41,7 @@ const ProductType = new GraphQLObjectType({
     imageURL: { type: GraphQLString },
     quantity: { type: GraphQLInt },
     detail: { type: GraphQLString },
-    rating: { type: GraphQLInt },
+    rating: { type: GraphQLFloat },
     review: { type: GraphQLList(ReviewType) },
   }),
 });
