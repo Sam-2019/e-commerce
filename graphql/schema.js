@@ -1013,6 +1013,11 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { user, product, price, quantity }) {
+        console.log(user);
+        console.log(price);
+        console.log(product);
+        console.log(quantity);
+
         async function addCart() {
           const cart = new CartSchema({
             user,
