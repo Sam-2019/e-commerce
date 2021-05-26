@@ -1013,10 +1013,10 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { user, product, price, quantity }) {
-        console.log(user);
-        console.log(price);
-        console.log(product);
-        console.log(quantity);
+        //     console.log(user);
+        //  console.log(price);
+        //     console.log(product);
+        //   console.log(quantity);
 
         async function addCart() {
           const cart = new CartSchema({
@@ -1027,42 +1027,42 @@ const RootMutation = new GraphQLObjectType({
           });
 
           try {
-            const findProduct = await CartSchema.findOne({
+            const checkAvailability = await CartSchema.findOne({
               product: cart.product,
+              user: cart.user,
             });
 
-            const cartUser = String(cart.user);
-            const cartProduct = String(cart.product);
+            //  console.log(checkAvailability);
 
-            if (!findProduct) {
+            if (checkAvailability === null) {
               const saveItem = async () => {
                 await cart.save();
+
                 const findUser = await UserSchema.findById(cartUser);
 
                 await findUser.cart.push(cart);
 
-                return findUser.save();
+                await findUser.save();
+
+                return cart;
               };
+
+              console.log("no data");
 
               return saveItem();
             }
 
-            if (findProduct) {
-              const productUser = String(findProduct.user);
-              const productID = String(findProduct.id);
+            const quantity = cart.quantity;
 
-              if (cartProduct === productID) {
-                //console.log("another match");
-                // const updateQuantity = await CartSchema.findOneAndUpdate(
-                //   { _id: productID },
-                //   { $set: { quantity } },
-                //   { omitUndefined: false }
-                // );
+            // console.log("Item already in user cart");
 
-                // return updateQuantity;
-                return new Error("Item already exist");
-              }
-            }
+            const updateQuantity = await CartSchema.findOneAndUpdate(
+              { _id: checkAvailability.id },
+              { $set: { quantity } },
+              { omitUndefined: false }
+            );
+
+            return updateQuantity;
           } catch (err) {
             console.log(err);
           }
