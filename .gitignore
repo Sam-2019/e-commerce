@@ -6,4 +6,5 @@ fastify server.js
 /graphql/pubsub.js
 /graphql/updateUser.js
 /subscription
+/cors
 
