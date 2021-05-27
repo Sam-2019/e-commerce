@@ -21,6 +21,7 @@ app.get("/", function (req, res) {
   res.end("Server up and running");
 });
 
+
 app.use(
   "/graphql",
   graphqlHTTP({
