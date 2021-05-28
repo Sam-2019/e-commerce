@@ -580,9 +580,9 @@ const RootQuery = new GraphQLObjectType({
       resolve(parentValue, { id }) {
         async function verificationStatus() {
           try {
-            const getStatus = await UserSchema.findOne({ _id: id });
-          
-            return getStatus
+            const getStatus = await UserSchema.findById(id);
+
+            return getStatus;
           } catch (err) {
             console.log(err);
           }
