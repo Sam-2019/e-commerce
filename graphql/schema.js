@@ -255,7 +255,7 @@ const RootQuery = new GraphQLObjectType({
             productRating = sum / ratingArray.length;
           }
 
-         // console.log(productRating.toFixed(2));
+          // console.log(productRating.toFixed(2));
 
           const reviewData = reviews.map((result) => {
             return {
@@ -567,6 +567,28 @@ const RootQuery = new GraphQLObjectType({
       type: new GraphQLList(LocationType),
       resolve(parentValue, args) {
         return LocationSchema.find();
+      },
+    },
+
+    verification: {
+      type: UserType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }) {
+        async function verificationStatus() {
+          try {
+            const getStatus = await UserSchema.findOne({ _id: id });
+          
+            return getStatus
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return verificationStatus();
       },
     },
   }),
