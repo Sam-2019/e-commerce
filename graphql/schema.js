@@ -152,6 +152,18 @@ const ReviewType = new GraphQLObjectType({
   }),
 });
 
+const AddReviewType = new GraphQLObjectType({
+  name: "AddReviewType",
+  fields: () => ({
+    id: { type: GraphQLID },
+    user: { type: GraphQLID },
+    product: { type: GraphQLID },
+    rating: { type: GraphQLInt },
+    text: { type: GraphQLString },
+    created_at: { type: GraphQLString },
+  }),
+});
+
 const LoginType = new GraphQLObjectType({
   name: "LoginType",
   fields: () => ({
@@ -242,6 +254,8 @@ const RootQuery = new GraphQLObjectType({
             const sum = await ratingArray.reduce((a, b) => a + b);
             productRating = sum / ratingArray.length;
           }
+
+         // console.log(productRating.toFixed(2));
 
           const reviewData = reviews.map((result) => {
             return {
@@ -1038,7 +1052,7 @@ const RootMutation = new GraphQLObjectType({
               const saveItem = async () => {
                 await cart.save();
 
-                const findUser = await UserSchema.findById(cartUser);
+                const findUser = await UserSchema.findById(cart.user);
 
                 await findUser.cart.push(cart);
 
@@ -1046,8 +1060,6 @@ const RootMutation = new GraphQLObjectType({
 
                 return cart;
               };
-
-              console.log("no data");
 
               return saveItem();
             }
@@ -1213,31 +1225,26 @@ const RootMutation = new GraphQLObjectType({
 
         async function addWishlist() {
           try {
-            const findProduct = await WishListSchema.findOne({
-              product,
+            const checkAvailability = await WishListSchema.findOne({
+              product: wishlist.product,
+              user: wishlist.user,
             });
 
-            const wishlistUser = String(user);
-            const wishlistProduct = String(product);
+            if (checkAvailability === null) {
+              const saveItem = async () => {
+                await wishlist.save();
 
-            if (!findProduct) {
-              const saveItem = await wishlist.save();
+                const findUser = await UserSchema.findById(wishlist.user);
 
-              const findUser = await UserSchema.findById(saveItem.user);
+                await findUser.wishlist.push(wishlist);
+                await findUser.save();
+                return wishlist;
+              };
 
-              await findUser.wishlist.push(wishlist);
-              await findUser.save();
-              return wishlist;
+              return saveItem();
             }
 
-            if (findProduct) {
-              const productUser = String(findProduct.user);
-              const productID = await String(findProduct.product);
-
-              if (wishlistProduct === productID) {
-                return new Error("");
-              }
-            }
+            return wishlist;
           } catch (err) {
             console.log(err);
           }
@@ -1272,19 +1279,19 @@ const RootMutation = new GraphQLObjectType({
     },
 
     addReview: {
-      type: ReviewType,
+      type: AddReviewType,
       args: {
         user: {
-          type: new GraphQLNonNull(GraphQLID),
+          type: GraphQLID,
         },
         product: {
-          type: new GraphQLNonNull(GraphQLID),
+          type: GraphQLID,
         },
         rating: {
-          type: new GraphQLNonNull(GraphQLInt),
+          type: GraphQLInt,
         },
         text: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         },
       },
       resolve(parentValue, { user, product, rating, text }) {
@@ -1311,7 +1318,7 @@ const RootMutation = new GraphQLObjectType({
 
             await multipleSave();
 
-            return saveItem;
+            return review;
           } catch (err) {
             console.log(err);
           }
