@@ -14,10 +14,7 @@ const OrderItemSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Product",
   },
-  payment: {
-    type: Schema.Types.ObjectId,
-    ref: "Payment",
-  },
+
   quantity: {
     type: String,
   },
