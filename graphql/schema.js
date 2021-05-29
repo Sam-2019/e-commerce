@@ -21,6 +21,7 @@ const WishListSchema = require("../db/schema/wishlist");
 const ReviewSchema = require("../db/schema/review");
 const OrderItemSchema = require("../db/schema/orderItem");
 const LocationSchema = require("../db/schema/location");
+const PaymentSchema = require("../db/schema/payment");
 
 const PaginationType = new GraphQLObjectType({
   name: "PaginationType",
@@ -179,6 +180,17 @@ const LocationType = new GraphQLObjectType({
     id: { type: GraphQLID },
     location: { type: GraphQLString },
     fee: { type: GraphQLString },
+  }),
+});
+
+const PaymentType = new GraphQLObjectType({
+  name: "PaymentType",
+  fields: () => ({
+    method: { type: GraphQLString },
+    status: { type: GraphQLString },
+    momo_name: { type: GraphQLString },
+    momo_number: { type: GraphQLInt },
+    momo_transaction_id: { type: GraphQLInt },
   }),
 });
 
@@ -1160,6 +1172,7 @@ const RootMutation = new GraphQLObjectType({
 
             for (productID of products) {
               const findProduct = await CartSchema.findOne({ _id: productID });
+              //  console.log(findProduct)
               items.push(findProduct.product);
             }
 
@@ -1477,6 +1490,51 @@ const RootMutation = new GraphQLObjectType({
         }
 
         return deleteLocation();
+      },
+    },
+
+    addPayment: {
+      type: PaymentType,
+      args: {
+        method: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+        status: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+        momo_name: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+        momo_number: {
+          type: new GraphQLNonNull(GraphQLInt),
+        },
+        momo_transaction_id: {
+          type: new GraphQLNonNull(GraphQLInt),
+        },
+      },
+      resolve(
+        parentValue,
+        { method, status, momo_name, momo_number, momo_transaction_id }
+      ) {
+        async function addPayment() {
+          const Payment = new PaymentSchema({
+            method,
+            status,
+            momo_name,
+            momo_number,
+            momo_transaction_id,
+          });
+
+          try {
+            await Payment.save();
+
+            return Payment;
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return addPayment();
       },
     },
   },
