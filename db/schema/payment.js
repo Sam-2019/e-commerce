@@ -12,10 +12,10 @@ const PaymentSchema = new Schema({
     type: String,
   },
   momo_number: {
-    type: Number,
+    type: String,
   },
   momo_transaction_id: {
-    type: Number,
+    type: String,
   },
 });
 
