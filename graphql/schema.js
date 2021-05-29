@@ -186,6 +186,7 @@ const LocationType = new GraphQLObjectType({
 const PaymentType = new GraphQLObjectType({
   name: "PaymentType",
   fields: () => ({
+    id: { type: GraphQLID },
     method: { type: GraphQLString },
     status: { type: GraphQLString },
     momo_name: { type: GraphQLString },
