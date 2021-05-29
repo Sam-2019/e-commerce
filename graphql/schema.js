@@ -189,8 +189,8 @@ const PaymentType = new GraphQLObjectType({
     method: { type: GraphQLString },
     status: { type: GraphQLString },
     momo_name: { type: GraphQLString },
-    momo_number: { type: GraphQLInt },
-    momo_transaction_id: { type: GraphQLInt },
+    momo_number: { type: GraphQLString },
+    momo_transaction_id: { type: GraphQLString },
   }),
 });
 
@@ -1506,10 +1506,10 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
         momo_number: {
-          type: new GraphQLNonNull(GraphQLInt),
+          type: new GraphQLNonNull(GraphQLString),
         },
         momo_transaction_id: {
-          type: new GraphQLNonNull(GraphQLInt),
+          type: new GraphQLNonNull(GraphQLString),
         },
       },
       resolve(
