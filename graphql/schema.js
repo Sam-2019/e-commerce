@@ -1534,27 +1534,34 @@ const RootMutation = new GraphQLObjectType({
         }
       ) {
         async function addPayment() {
-          const payment = new PaymentSchema({
-            method,
-            status,
-            momo_name,
-            momo_number,
-            momo_transaction_id,
-          });
+
 
           try {
+
+            const payment = new PaymentSchema({
+              method,
+              status,
+              momo_name,
+              momo_number,
+              momo_transaction_id,
+            });
+
             const payment = await payment.save();
+            
 
-             const findOrder = await OrderSchema.findOne({
-               orderValue: order_value,
-           });
+            const findOrder = await OrderSchema.findOne({
+              orderValue: order_value,
+            });
 
-            const query = { payment: findOrder.payment };
+            console.log(findOrder);
 
-            const Paymenupdate = await OrderSchema.findOneAndUpdate(
-              query,
-              { payment: payment }
-            );
+            //   await findOrder.payment = payment
+            // await findOrder.save();
+
+            // const Paymenupdate = await OrderSchema.findOneAndUpdate(
+            //   query,
+            //   { payment: payment }
+            // );
 
             // const Paymenupdate = await OrderSchema.updateOne(
             //   { _id: findOrder.id },
@@ -1570,7 +1577,7 @@ const RootMutation = new GraphQLObjectType({
             //  await findOrder.save();
             // order_value
 
-            return Paymenupdate;
+            return payment;
           } catch (err) {
             console.log(err);
           }
