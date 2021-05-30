@@ -111,6 +111,7 @@ const OrderType = new GraphQLObjectType({
     id: { type: GraphQLID },
     user: { type: GraphQLID },
     products: { type: GraphQLList(ProductType) },
+    payment: { type: GraphQLID },
     orderNumber: { type: GraphQLString },
     orderValue: { type: GraphQLString },
     status: { type: GraphQLString },
@@ -187,6 +188,7 @@ const PaymentType = new GraphQLObjectType({
   name: "PaymentType",
   fields: () => ({
     id: { type: GraphQLID },
+    order_value: { type: GraphQLString },
     method: { type: GraphQLString },
     status: { type: GraphQLString },
     momo_name: { type: GraphQLString },
@@ -1156,6 +1158,9 @@ const RootMutation = new GraphQLObjectType({
         products: {
           type: GraphQLList(GraphQLID),
         },
+        payment: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
         orderNumber: {
           type: GraphQLString,
         },
@@ -1165,7 +1170,7 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve(
         parentValue,
-        { user, products, orderNumber, orderValue, status = "Pending" }
+        { user, products, orderNumber, orderValue, status = "Pending", payment }
       ) {
         async function createOrder() {
           try {
@@ -1183,6 +1188,7 @@ const RootMutation = new GraphQLObjectType({
               orderNumber,
               orderValue,
               status,
+              payment,
             });
 
             const saveItem = await order.save();
@@ -1512,13 +1518,23 @@ const RootMutation = new GraphQLObjectType({
         momo_transaction_id: {
           type: new GraphQLNonNull(GraphQLString),
         },
+        order_value: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
       },
       resolve(
         parentValue,
-        { method, status, momo_name, momo_number, momo_transaction_id }
+        {
+          method,
+          status,
+          momo_name,
+          momo_number,
+          momo_transaction_id,
+          order_value,
+        }
       ) {
         async function addPayment() {
-          const Payment = new PaymentSchema({
+          const payment = new PaymentSchema({
             method,
             status,
             momo_name,
@@ -1527,9 +1543,34 @@ const RootMutation = new GraphQLObjectType({
           });
 
           try {
-            await Payment.save();
+            const payment = await payment.save();
 
-            return Payment;
+             const findOrder = await OrderSchema.findOne({
+               orderValue: order_value,
+           });
+
+            const query = { payment: findOrder.payment };
+
+            const Paymenupdate = await OrderSchema.findOneAndUpdate(
+              query,
+              { payment: payment }
+            );
+
+            // const Paymenupdate = await OrderSchema.updateOne(
+            //   { _id: findOrder.id },
+            //   {
+            //     $set: {
+            //       payment,
+            //     },
+            //   },
+            //   { omitUndefined: false }
+            // );
+
+            //await findOrder.payment.push(payment);
+            //  await findOrder.save();
+            // order_value
+
+            return Paymenupdate;
           } catch (err) {
             console.log(err);
           }
