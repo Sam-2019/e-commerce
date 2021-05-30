@@ -1546,7 +1546,7 @@ const RootMutation = new GraphQLObjectType({
               momo_transaction_id,
             });
 
-            const payment = await payment.save();
+            await payment.save();
             
 
             const findOrder = await OrderSchema.findOne({
