@@ -17,6 +17,10 @@ const OrderSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Payment",
     },
+    delivery: {
+      type: Schema.Types.ObjectId,
+      ref: "Delivery",
+    },
     orderNumber: {
       type: String,
     },
