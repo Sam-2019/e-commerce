@@ -1534,10 +1534,7 @@ const RootMutation = new GraphQLObjectType({
         }
       ) {
         async function addPayment() {
-
-
           try {
-
             const payment = new PaymentSchema({
               method,
               status,
@@ -1546,36 +1543,27 @@ const RootMutation = new GraphQLObjectType({
               momo_transaction_id,
             });
 
-            await payment.save();
-            
+            const savePayment = await payment.save();
+            //console.log(savePayment.id);
 
-            const findOrder = await OrderSchema.findOne({
-              orderValue: order_value,
-            });
+            // const findOrder = await OrderSchema.findOne({
+            //   orderValue: order_value,
+            // });
 
-            console.log(findOrder);
+            //  console.log(savePayment);
+            //   console.log(findOrder);
 
-            //   await findOrder.payment = payment
-            // await findOrder.save();
+            const Update = await OrderSchema.updateOne(
+              { orderValue: order_value },
+              {
+                $set: {
+                  payment: savePayment.id,
+                },
+              },
+              { omitUndefined: false }
+            );
 
-            // const Paymenupdate = await OrderSchema.findOneAndUpdate(
-            //   query,
-            //   { payment: payment }
-            // );
-
-            // const Paymenupdate = await OrderSchema.updateOne(
-            //   { _id: findOrder.id },
-            //   {
-            //     $set: {
-            //       payment,
-            //     },
-            //   },
-            //   { omitUndefined: false }
-            // );
-
-            //await findOrder.payment.push(payment);
-            //  await findOrder.save();
-            // order_value
+            Update;
 
             return payment;
           } catch (err) {
