@@ -22,6 +22,16 @@ const ReviewSchema = require("../db/schema/review");
 const OrderItemSchema = require("../db/schema/orderItem");
 const LocationSchema = require("../db/schema/location");
 const PaymentSchema = require("../db/schema/payment");
+const DeliverySchema = require("../db/schema/delivey");
+
+const DeliveryType = new GraphQLObjectType({
+  name: "DeliveryType",
+  fields: () => ({
+    location: { type: GraphQLString },
+    address: { type: GraphQLString },
+    phone_number: { type: GraphQLString },
+  }),
+});
 
 const PaginationType = new GraphQLObjectType({
   name: "PaginationType",
@@ -112,6 +122,7 @@ const OrderType = new GraphQLObjectType({
     user: { type: GraphQLID },
     products: { type: GraphQLList(ProductType) },
     payment: { type: GraphQLID },
+    delivery: { type: GraphQLID },
     orderNumber: { type: GraphQLString },
     orderValue: { type: GraphQLString },
     status: { type: GraphQLString },
@@ -194,6 +205,9 @@ const PaymentType = new GraphQLObjectType({
     momo_name: { type: GraphQLString },
     momo_number: { type: GraphQLString },
     momo_transaction_id: { type: GraphQLString },
+    location: { type: GraphQLString },
+    address: { type: GraphQLString },
+    phone_number: { type: GraphQLString },
   }),
 });
 
@@ -213,17 +227,6 @@ const RootQuery = new GraphQLObjectType({
       resolve(parentValue, { offset, limit }) {
         async function findProducts() {
           const productsCount = await ProductSchema.estimatedDocumentCount();
-
-          // const ProductToLimit = await (productsCount / limit);
-
-          // console.log(productsCount);
-          // console.log(ProductLimit);
-          // console.log(offset);
-          // console.log(limit);
-
-          // if (limit > ProductToLimit) {
-          //   return console.log("No more products");
-          // }
 
           const data = await ProductSchema.find({})
             .skip(limit * offset - limit)
@@ -269,8 +272,6 @@ const RootQuery = new GraphQLObjectType({
             const sum = await ratingArray.reduce((a, b) => a + b);
             productRating = sum / ratingArray.length;
           }
-
-          // console.log(productRating.toFixed(2));
 
           const reviewData = reviews.map((result) => {
             return {
@@ -465,6 +466,9 @@ const RootQuery = new GraphQLObjectType({
             const findUser = await OrderItemSchema.find({
               user: id,
             }).populate(["product", "orderID"]);
+
+
+   
 
             let productStatus;
             for (let x of findUser) {
@@ -1064,10 +1068,6 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { user, product, price, quantity }) {
-        //     console.log(user);
-        //  console.log(price);
-        //     console.log(product);
-        //   console.log(quantity);
 
         async function addCart() {
           const cart = new CartSchema({
@@ -1082,8 +1082,6 @@ const RootMutation = new GraphQLObjectType({
               product: cart.product,
               user: cart.user,
             });
-
-            //  console.log(checkAvailability);
 
             if (checkAvailability === null) {
               const saveItem = async () => {
@@ -1102,8 +1100,6 @@ const RootMutation = new GraphQLObjectType({
             }
 
             const quantity = cart.quantity;
-
-            // console.log("Item already in user cart");
 
             const updateQuantity = await CartSchema.findOneAndUpdate(
               { _id: checkAvailability.id },
@@ -1161,6 +1157,9 @@ const RootMutation = new GraphQLObjectType({
         payment: {
           type: new GraphQLNonNull(GraphQLID),
         },
+        delivery: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
         orderNumber: {
           type: GraphQLString,
         },
@@ -1170,7 +1169,15 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve(
         parentValue,
-        { user, products, orderNumber, orderValue, status = "Pending", payment }
+        {
+          user,
+          products,
+          orderNumber,
+          orderValue,
+          status = "Pending",
+          payment,
+          delivery,
+        }
       ) {
         async function createOrder() {
           try {
@@ -1178,7 +1185,6 @@ const RootMutation = new GraphQLObjectType({
 
             for (productID of products) {
               const findProduct = await CartSchema.findOne({ _id: productID });
-              //  console.log(findProduct)
               items.push(findProduct.product);
             }
 
@@ -1189,6 +1195,7 @@ const RootMutation = new GraphQLObjectType({
               orderValue,
               status,
               payment,
+              delivery,
             });
 
             const saveItem = await order.save();
@@ -1521,6 +1528,15 @@ const RootMutation = new GraphQLObjectType({
         order_value: {
           type: new GraphQLNonNull(GraphQLString),
         },
+        location: {
+          type: GraphQLString,
+        },
+        address: {
+          type: GraphQLString,
+        },
+        phone_number: {
+          type: GraphQLString,
+        },
       },
       resolve(
         parentValue,
@@ -1531,9 +1547,13 @@ const RootMutation = new GraphQLObjectType({
           momo_number,
           momo_transaction_id,
           order_value,
+          location,
+          address,
+          phone_number,
         }
       ) {
         async function addPayment() {
+
           try {
             const payment = new PaymentSchema({
               method,
@@ -1543,21 +1563,21 @@ const RootMutation = new GraphQLObjectType({
               momo_transaction_id,
             });
 
+            const delivery = new DeliverySchema({
+              location,
+              address,
+              phone_number,
+            });
+
             const savePayment = await payment.save();
-            //console.log(savePayment.id);
-
-            // const findOrder = await OrderSchema.findOne({
-            //   orderValue: order_value,
-            // });
-
-            //  console.log(savePayment);
-            //   console.log(findOrder);
+            const saveDelivery = await delivery.save();
 
             const Update = await OrderSchema.updateOne(
               { orderValue: order_value },
               {
                 $set: {
                   payment: savePayment.id,
+                  delivery: saveDelivery.id,
                 },
               },
               { omitUndefined: false }
