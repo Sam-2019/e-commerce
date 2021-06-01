@@ -28,6 +28,7 @@ app.use(
     schema: DataSchema,
     graphiql: true,
     pretty: true,
+    
   })
 );
 

@@ -1,6 +1,7 @@
 const graphql = require("graphql");
 const {
   GraphQLObjectType,
+  GraphQLUnionType,
   GraphQLString,
   GraphQLInt,
   GraphQLSchema,
@@ -181,6 +182,8 @@ const LoginType = new GraphQLObjectType({
   name: "LoginType",
   fields: () => ({
     user: { type: GraphQLID },
+    email: { type: GraphQLString },
+    password: { type: GraphQLString },
     token: { type: GraphQLString },
     tokenexpiration: { type: GraphQLInt },
   }),
@@ -368,6 +371,7 @@ const RootQuery = new GraphQLObjectType({
       resolve(parentValue, { email, password }) {
         const loginUser = async () => {
           try {
+
             const user = await UserSchema.findOne({ email });
 
             const isEqual = await bcrypt.compare(password, user.password);
@@ -466,9 +470,6 @@ const RootQuery = new GraphQLObjectType({
             const findUser = await OrderItemSchema.find({
               user: id,
             }).populate(["product", "orderID"]);
-
-
-   
 
             let productStatus;
             for (let x of findUser) {
@@ -1068,7 +1069,6 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { user, product, price, quantity }) {
-
         async function addCart() {
           const cart = new CartSchema({
             user,
@@ -1207,8 +1207,8 @@ const RootMutation = new GraphQLObjectType({
             await findUser.save();
 
             async function saveOrderItem() {
-              for (x of products) {
-                const findQty = await CartSchema.findOne({ _id: x });
+              for (productID of products) {
+                const findQty = await CartSchema.findOne({ _id: productID });
 
                 const saveOrderItem = await new OrderItemSchema({
                   user: saveItem.user,
@@ -1553,7 +1553,6 @@ const RootMutation = new GraphQLObjectType({
         }
       ) {
         async function addPayment() {
-
           try {
             const payment = new PaymentSchema({
               method,
