@@ -1,6 +1,7 @@
 const graphql = require("graphql");
 const {
   GraphQLObjectType,
+  GraphQLInterfaceType,
   GraphQLString,
   GraphQLInt,
   GraphQLSchema,
@@ -23,6 +24,18 @@ const OrderItemSchema = require("../db/schema/orderItem");
 const LocationSchema = require("../db/schema/location");
 const PaymentSchema = require("../db/schema/payment");
 const DeliverySchema = require("../db/schema/delivey");
+
+const ItemType = new GraphQLInterfaceType({
+  name: 'ItemType',
+  fields: {
+    name: { type: GraphQLString },
+    sku: { type: GraphQLString },
+    author: { type: GraphQLString },
+    price: { type: GraphQLString },
+    imageURL: { type: GraphQLString },
+    quantity: { type: GraphQLInt },
+  }
+});
 
 const DeliveryType = new GraphQLObjectType({
   name: "DeliveryType",
