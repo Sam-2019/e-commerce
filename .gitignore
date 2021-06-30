@@ -7,4 +7,5 @@ fastify server.js
 /graphql/updateUser.js
 /subscription
 /cors
+/db/.env
 
