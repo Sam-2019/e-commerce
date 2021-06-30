@@ -13,6 +13,7 @@ const ReviewSchema = new Schema(
     },
     rating: {
       type: Number,
+      default: 0
     },
     text: {
       type: String,
