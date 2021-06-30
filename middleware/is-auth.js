@@ -26,10 +26,12 @@ module.exports = (req, res, next) => {
     req.isAuth = false;
     return next();
   }
+  
   if (!decodeToken) {
     req.isAuth = false;
     return next();
   }
+
   req.isAuth = true;
   req.userId = decodeToken.userId;
   next();
