@@ -2,7 +2,10 @@ const express = require("express");
 const { graphqlHTTP } = require("express-graphql");
 const DataSchema = require("./graphql/schema");
 
+const isAuth = require("./middleware/is-auth");
+
 require("./db/db");
+require("dotenv").config();
 
 const app = express();
 
@@ -17,18 +20,21 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(isAuth);
+
 app.get("/", function (req, res) {
   res.end("Server up and running");
 });
 
-
 app.use(
   "/graphql",
-  graphqlHTTP({
-    schema: DataSchema,
-    graphiql: true,
-    pretty: true,
-    
+  graphqlHTTP((request) => {
+    // console.log(request);
+    return {
+      schema: DataSchema,
+      graphiql: true,
+      pretty: true,
+    };
   })
 );
 
