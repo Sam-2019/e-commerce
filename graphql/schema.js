@@ -11,8 +11,11 @@ const {
   GraphQLBoolean,
   GraphQLFloat,
 } = graphql;
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const {
+  passwordEncrypt,
+  passwordCompare,
+  generateToken,
+} = require("../helper");
 
 const ProductSchema = require("../db/schema/product");
 const UserSchema = require("../db/schema/user");
@@ -24,6 +27,8 @@ const OrderItemSchema = require("../db/schema/orderItem");
 const LocationSchema = require("../db/schema/location");
 const PaymentSchema = require("../db/schema/payment");
 const DeliverySchema = require("../db/schema/delivey");
+
+const models = require("../db/index");
 
 const ItemType = new GraphQLInterfaceType({
   name: "ItemType",
@@ -76,11 +81,11 @@ const UserType = new GraphQLObjectType({
     id: { type: GraphQLID },
     userName: { type: GraphQLString },
     password: { type: GraphQLString },
-    new_password: { type: GraphQLString },
+    newPassword: { type: GraphQLString },
     firstName: { type: GraphQLString },
     lastName: { type: GraphQLString },
     email: { type: GraphQLString },
-    new_email: { type: GraphQLString },
+    newEmail: { type: GraphQLString },
     photoURL: { type: GraphQLString },
     phoneNumber: { type: GraphQLString },
     verified: { type: GraphQLBoolean },
@@ -174,7 +179,7 @@ const ReviewType = new GraphQLObjectType({
     product: { type: GraphQLID },
     rating: { type: GraphQLInt },
     text: { type: GraphQLString },
-    created_at: { type: GraphQLString },
+    createdAt: { type: GraphQLString },
   }),
 });
 
@@ -186,7 +191,7 @@ const AddReviewType = new GraphQLObjectType({
     product: { type: GraphQLID },
     rating: { type: GraphQLInt },
     text: { type: GraphQLString },
-    created_at: { type: GraphQLString },
+    createdAt: { type: GraphQLString },
   }),
 });
 
@@ -214,12 +219,12 @@ const PaymentType = new GraphQLObjectType({
   name: "PaymentType",
   fields: () => ({
     id: { type: GraphQLID },
-    order_value: { type: GraphQLString },
+    orderValue: { type: GraphQLString },
     method: { type: GraphQLString },
     status: { type: GraphQLString },
-    momo_name: { type: GraphQLString },
-    momo_number: { type: GraphQLString },
-    momo_transaction_id: { type: GraphQLString },
+    momoName: { type: GraphQLString },
+    momoNumber: { type: GraphQLString },
+    momoTransactionID: { type: GraphQLString },
     location: { type: GraphQLString },
     address: { type: GraphQLString },
     phoneNumber: { type: GraphQLString },
@@ -299,7 +304,7 @@ const RootQuery = new GraphQLObjectType({
               },
               rating: result.rating,
               text: result.text,
-              created_at: result.created_at,
+              createdAt: result.created_at,
             };
           });
 
@@ -384,9 +389,7 @@ const RootQuery = new GraphQLObjectType({
         const loginUser = async () => {
           try {
             const user = await UserSchema.findOne({ email });
-
-            const isEqual = await bcrypt.compare(password, user.password);
-
+            const isEqual = await passwordCompare(password, user.password);
             const check = () => {
               if (!user) {
                 return new Error("User does not exist");
@@ -396,13 +399,7 @@ const RootQuery = new GraphQLObjectType({
                 return new Error("Password is incoreect");
               }
 
-              const token = jwt.sign(
-                { userId: user._id, email: user.email },
-                "somesupersecretkey",
-                {
-                  expiresIn: "1h",
-                }
-              );
+              const token = generateToken(user._id, user.email);
 
               return {
                 user: user.id,
@@ -413,7 +410,7 @@ const RootQuery = new GraphQLObjectType({
 
             return check();
           } catch (err) {
-            console.log(err);
+            return new Error("User does not exist");
           }
         };
 
@@ -571,7 +568,7 @@ const RootQuery = new GraphQLObjectType({
                 },
                 rating: result.rating,
                 text: result.text,
-                created_at: result.created_at,
+                createdAt: result.created_at,
               };
             });
           } catch (err) {
@@ -740,10 +737,10 @@ const RootMutation = new GraphQLObjectType({
       resolve(parentValue, { id }) {
         async function deleteProduct() {
           try {
-            const deleteItem = await ProductSchema.findByIdAndDelete(id);
-            return deleteItem;
+            await ProductSchema.findByIdAndDelete(id);
+            return true;
           } catch (err) {
-            console.log(err);
+            return false;
           }
         }
         return deleteProduct();
@@ -777,7 +774,9 @@ const RootMutation = new GraphQLObjectType({
         { userName, password, firstName, lastName, email, phoneNumber }
       ) {
         async function signup() {
-          const hashedPassword = await bcrypt.hash(password, 12);
+          //   const saltRounds = 12;
+          // const hashedPassword = await bcrypt.hash(password, saltRounds);
+
           const genericImage =
             "https://www.beautifulpeople.com/cdn/beautifulpeople/images/default_profile/signup_male.png";
 
@@ -793,7 +792,7 @@ const RootMutation = new GraphQLObjectType({
           });
 
           try {
-            const findUser = await UserSchema.findOne({
+            const findEmail = await UserSchema.findOne({
               email: String(user.email),
             });
 
@@ -801,18 +800,18 @@ const RootMutation = new GraphQLObjectType({
               userName: String(user.userName),
             });
 
-            if (findUser) {
+            if (findEmail) {
               return new Error("Email already exist");
             }
 
-            if (findUsername) {
+            if (findUserName) {
               return new Error("Username already exist");
             }
 
             const userSignup = await user.save();
             return userSignup;
           } catch (err) {
-            return new Error("Signup failed");
+            return new Error("Error creating account");
           }
         }
 
@@ -909,11 +908,11 @@ const RootMutation = new GraphQLObjectType({
         email: {
           type: GraphQLString,
         },
-        new_email: {
+        newEmail: {
           type: GraphQLString,
         },
       },
-      resolve(parentValue, { id, email, new_email }) {
+      resolve(parentValue, { id, email, newEmail }) {
         async function updateUserEmail() {
           try {
             const findEmail = await UserSchema.findOne({ email: email });
@@ -926,7 +925,7 @@ const RootMutation = new GraphQLObjectType({
               { _id: id },
               {
                 $set: {
-                  email: new_email,
+                  email: newEmail,
                 },
               },
               { omitUndefined: true }
@@ -935,7 +934,7 @@ const RootMutation = new GraphQLObjectType({
             updateUserEmail;
             return {
               id,
-              email: new_email,
+              email: newEmail,
             };
           } catch (err) {
             console.log(err);
@@ -955,27 +954,40 @@ const RootMutation = new GraphQLObjectType({
         password: {
           type: GraphQLString,
         },
-        new_password: {
+        newPassword: {
           type: GraphQLString,
         },
       },
-      resolve(parentValue, { id, password, new_password }) {
+      resolve(parentValue, { id, password, newPassword }) {
         async function updateUserPassword() {
           try {
             const findUser = await UserSchema.findOne({ _id: id });
-            const isEqual = await bcrypt.compare(password, findUser.password);
+            const compareCurrentPassword = await passwordCompare(
+              password,
+              findUser.password
+            );
+            const compareOldPasswordToNewPassword = await passwordCompare(
+              findUser.password,
+              newPassword
+            );
 
-            if (!isEqual) {
+            //  const isEqual = await bcrypt.compare(password, findUser.password);
+
+            if (!compareCurrentPassword) {
               return new Error("Password is incorrect");
             }
 
-            const hashedPassword = await bcrypt.hash(new_password, 12);
+            if (compareOldPasswordToNewPassword) {
+              return new Error(
+                "You have previously used this password. Please enter a new and unique password."
+              );
+            }
 
             const updateUserPassword = await UserSchema.updateOne(
               { _id: id },
               {
                 $set: {
-                  password: hashedPassword,
+                  password: passwordEncrypt(newPassword),
                 },
               },
               { omitUndefined: true }
@@ -1059,7 +1071,15 @@ const RootMutation = new GraphQLObjectType({
         },
       },
       resolve(parentValue, { id }) {
-        return UserSchema.findByIdAndDelete(id);
+        async function deleteUser() {
+          try {
+            await UserSchema.findByIdAndDelete(id);
+            return true;
+          } catch (err) {
+            return false;
+          }
+        }
+        return deleteUser();
       },
     },
 
@@ -1527,16 +1547,16 @@ const RootMutation = new GraphQLObjectType({
         status: {
           type: new GraphQLNonNull(GraphQLString),
         },
-        momo_name: {
+        momoName: {
           type: new GraphQLNonNull(GraphQLString),
         },
-        momo_number: {
+        momoNumber: {
           type: new GraphQLNonNull(GraphQLString),
         },
-        momo_transaction_id: {
+        momoTransactionID: {
           type: new GraphQLNonNull(GraphQLString),
         },
-        order_value: {
+        orderValue: {
           type: new GraphQLNonNull(GraphQLString),
         },
         location: {
@@ -1554,10 +1574,10 @@ const RootMutation = new GraphQLObjectType({
         {
           method,
           status,
-          momo_name,
-          momo_number,
-          momo_transaction_id,
-          order_value,
+          momoName,
+          momoNumber,
+          momoTransactionID,
+          orderValue,
           location,
           address,
           phoneNumber,
@@ -1568,9 +1588,9 @@ const RootMutation = new GraphQLObjectType({
             const payment = new PaymentSchema({
               method,
               status,
-              momo_name,
-              momo_number,
-              momo_transaction_id,
+              momoName,
+              momoNumber,
+              momoTransactionID,
             });
 
             const delivery = new DeliverySchema({
@@ -1583,7 +1603,7 @@ const RootMutation = new GraphQLObjectType({
             const saveDelivery = await delivery.save();
 
             const Update = await OrderSchema.updateOne(
-              { orderValue: order_value },
+              { orderValue: orderValue },
               {
                 $set: {
                   payment: savePayment.id,
