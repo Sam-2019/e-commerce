@@ -1,21 +1,21 @@
 const mongoose = require("mongoose");
 const keys = require("../db/keys");
 
-// mongoose.connect(keys.mongoURI, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-//   useCreateIndex: true,
-//   autoIndex: false,
-//   useFindAndModify: false,
-// });
-
-mongoose.connect("mongodb://localhost:27017/e-commerce", {
+mongoose.connect(keys.mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
   autoIndex: false,
   useFindAndModify: false,
 });
+
+//mongoose.connect("mongodb://localhost:27017/e-commerce", {
+// useNewUrlParser: true,
+// useUnifiedTopology: true,
+//useCreateIndex: true,
+// autoIndex: false,
+// useFindAndModify: false,
+// });
 
 var dbConn = mongoose.connection;
 dbConn.on("connected", function () {
