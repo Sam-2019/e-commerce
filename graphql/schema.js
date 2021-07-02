@@ -12,6 +12,7 @@ const {
   GraphQLFloat,
 } = graphql;
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const ProductSchema = require("../db/schema/product");
 const UserSchema = require("../db/schema/user");
