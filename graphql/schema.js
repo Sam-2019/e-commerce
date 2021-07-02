@@ -238,7 +238,7 @@ const RootQuery = new GraphQLObjectType({
           type: GraphQLInt,
         },
       },
-      resolve({ offset, limit }) {
+      resolve(parentValue, { offset, limit }) {
         async function findProducts() {
           const productsCount = await ProductSchema.estimatedDocumentCount();
 
@@ -263,7 +263,7 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve({ sku }) {
+      resolve(parentValue, { sku }) {
         async function findProduct() {
           let ratingArray = [];
           let productRating;
@@ -328,7 +328,7 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve({ text }) {
+      resolve(parentValue, { text }) {
         async function search() {
           try {
             const searchItem = await ProductSchema.find({
@@ -347,7 +347,7 @@ const RootQuery = new GraphQLObjectType({
 
     users: {
       type: new GraphQLList(UserType),
-      resolve() {
+      resolve(parentValue) {
         return UserSchema.find();
       },
     },
@@ -359,7 +359,7 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         return UserSchema.findById(id).populate([
           "cart",
           "order",
@@ -379,7 +379,7 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve({ email, password }) {
+      resolve(parentValue, { email, password }) {
         const loginUser = async () => {
           try {
             const user = await UserSchema.findOne({ email });
@@ -432,7 +432,7 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         return CartSchema.find({ user: id })
           .populate("product")
           .then((results) => {
@@ -460,14 +460,14 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         return CartSchema.findById(id);
       },
     },
 
     orders: {
       type: new GraphQLList(OrderType),
-      resolve() {
+      resolve(parentValue) {
         return OrderSchema.find();
       },
     },
@@ -479,7 +479,7 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         async function userOrder() {
           try {
             const findUser = await OrderItemSchema.find({
@@ -515,7 +515,7 @@ const RootQuery = new GraphQLObjectType({
 
     wishlists: {
       type: new GraphQLList(WishListType),
-      resolve() {
+      resolve(parentValue) {
         return WishListSchema.find();
       },
     },
@@ -527,7 +527,7 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         return WishListSchema.find({ user: id })
           .populate("product")
           .then((results) => {
@@ -555,7 +555,7 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve({ sku }) {
+      resolve(parentValue, { sku }) {
         async function review() {
           try {
             const findProduct = await ProductSchema.findOne({ sku: sku });
@@ -593,14 +593,14 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         return ReviewSchema.findById(id);
       },
     },
 
     location: {
       type: new GraphQLList(LocationType),
-      resolve() {
+      resolve(parentValue) {
         return LocationSchema.find();
       },
     },
@@ -612,7 +612,7 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         async function verificationStatus() {
           try {
             const getStatus = await UserSchema.findById(id);
@@ -657,7 +657,10 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve({ name, author, sku, price, imageURL, quantity, detail }) {
+      resolve(
+        parentValue,
+        { name, author, sku, price, imageURL, quantity, detail }
+      ) {
         const product = new ProductSchema({
           name,
           author,
@@ -709,7 +712,10 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve({ id, name, author, sku, price, imageURL, quantity, detail }) {
+      resolve(
+        parentValue,
+        { id, name, author, sku, price, imageURL, quantity, detail }
+      ) {
         async function updateProduct() {
           try {
             const find = ProductSchema.findOneAndUpdate(
@@ -735,7 +741,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         async function deleteProduct() {
           try {
             await ProductSchema.findByIdAndDelete(id);
@@ -770,7 +776,10 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve({ userName, firstName, lastName, email, phoneNumber }) {
+      resolve(
+        parentValue,
+        { userName, firstName, lastName, email, phoneNumber }
+      ) {
         async function signup() {
           const saltRounds = 12;
           const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -827,7 +836,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve({ id, photoURL }) {
+      resolve(parentValue, { id, photoURL }) {
         async function photoUser() {
           try {
             const photo = await UserSchema.updateOne(
@@ -868,7 +877,7 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve({ id, firstName, lastName }) {
+      resolve(parentValue, { id, firstName, lastName }) {
         async function updateUserName() {
           try {
             const updateUserName = await UserSchema.updateOne(
@@ -910,7 +919,7 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve({ id, email, newEmail }) {
+      resolve(parentValue, { id, email, newEmail }) {
         async function updateUserEmail() {
           try {
             const findEmail = await UserSchema.findOne({ email: email });
@@ -956,7 +965,7 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve({ id, password, newPassword }) {
+      resolve(parentValue, { id, password, newPassword }) {
         async function updateUserPassword() {
           try {
             const findUser = await UserSchema.findOne({ _id: id });
@@ -1025,7 +1034,7 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLBoolean,
         },
       },
-      resolve({ id, userName, phoneNumber, photoURL, verified }) {
+      resolve(parentValue, { id, userName, phoneNumber, photoURL, verified }) {
         async function updateUserDetails() {
           try {
             const findUser = await UserSchema.findOne({ _id: id });
@@ -1071,7 +1080,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         async function deleteUser() {
           try {
             await UserSchema.findByIdAndDelete(id);
@@ -1100,7 +1109,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve({ user, product, price, quantity }) {
+      resolve(parentValue, { user, product, price, quantity }) {
         async function addCart() {
           const cart = new CartSchema({
             user,
@@ -1159,7 +1168,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id, user }) {
+      resolve(parentValue, { id, user }) {
         async function deleteCart() {
           try {
             const cart = await CartSchema.findByIdAndDelete(id);
@@ -1199,15 +1208,18 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve({
-        user,
-        products,
-        orderNumber,
-        orderValue,
-        status = "Pending",
-        payment,
-        delivery,
-      }) {
+      resolve(
+        parentValue,
+        {
+          user,
+          products,
+          orderNumber,
+          orderValue,
+          status = "Pending",
+          payment,
+          delivery,
+        }
+      ) {
         async function createOrder() {
           try {
             let items = [];
@@ -1269,7 +1281,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         async function deleteOrder() {
           try {
             const order = await OrderSchema.findByIdAndDelete(id);
@@ -1295,7 +1307,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ user, product }) {
+      resolve(parentValue, { user, product }) {
         const wishlist = new WishListSchema({
           user,
           product,
@@ -1339,7 +1351,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         async function deleteWishlist() {
           try {
             const wishlist = await WishListSchema.findByIdAndDelete(id);
@@ -1372,7 +1384,7 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve({ user, product, rating, text }) {
+      resolve(parentValue, { user, product, rating, text }) {
         const review = new ReviewSchema({
           user,
           product,
@@ -1413,7 +1425,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         async function deleteReview() {
           try {
             const removeReview = await ReviewSchema.findByIdAndDelete(id);
@@ -1453,7 +1465,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve({ location, fee }) {
+      resolve(parentValue, { location, fee }) {
         const userLocation = new LocationSchema({
           location,
           fee,
@@ -1485,7 +1497,7 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve({ id, location, fee }) {
+      resolve(parentValue, { id, location, fee }) {
         async function updateLocation() {
           try {
             const update = await LocationSchema.updateOne(
@@ -1522,7 +1534,7 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve({ id }) {
+      resolve(parentValue, { id }) {
         async function deleteLocation() {
           try {
             const deleteItem = await LocationSchema.findByIdAndDelete(id);
@@ -1567,17 +1579,20 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve({
-        method,
-        status,
-        momoName,
-        momoNumber,
-        momoTransactionID,
-        orderValue,
-        location,
-        address,
-        phoneNumber,
-      }) {
+      resolve(
+        parentValue,
+        {
+          method,
+          status,
+          momoName,
+          momoNumber,
+          momoTransactionID,
+          orderValue,
+          location,
+          address,
+          phoneNumber,
+        }
+      ) {
         async function addPayment() {
           try {
             const payment = new PaymentSchema({
