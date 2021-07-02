@@ -26,7 +26,7 @@ const PaymentSchema = require("../db/schema/payment");
 const DeliverySchema = require("../db/schema/delivey");
 
 const ItemType = new GraphQLInterfaceType({
-  name: 'ItemType',
+  name: "ItemType",
   fields: {
     name: { type: GraphQLString },
     sku: { type: GraphQLString },
@@ -34,7 +34,7 @@ const ItemType = new GraphQLInterfaceType({
     price: { type: GraphQLString },
     imageURL: { type: GraphQLString },
     quantity: { type: GraphQLInt },
-  }
+  },
 });
 
 const DeliveryType = new GraphQLObjectType({
@@ -42,7 +42,7 @@ const DeliveryType = new GraphQLObjectType({
   fields: () => ({
     location: { type: GraphQLString },
     address: { type: GraphQLString },
-    phone_number: { type: GraphQLString },
+    phoneNumber: { type: GraphQLString },
   }),
 });
 
@@ -74,15 +74,15 @@ const UserType = new GraphQLObjectType({
   name: "UserType",
   fields: () => ({
     id: { type: GraphQLID },
-    username: { type: GraphQLString },
+    userName: { type: GraphQLString },
     password: { type: GraphQLString },
     new_password: { type: GraphQLString },
-    first_name: { type: GraphQLString },
-    last_name: { type: GraphQLString },
+    firstName: { type: GraphQLString },
+    lastName: { type: GraphQLString },
     email: { type: GraphQLString },
     new_email: { type: GraphQLString },
     photoURL: { type: GraphQLString },
-    phone_number: { type: GraphQLString },
+    phoneNumber: { type: GraphQLString },
     verified: { type: GraphQLBoolean },
     cart: { type: GraphQLList(CartType) },
     order: { type: GraphQLList(OrderType) },
@@ -222,7 +222,7 @@ const PaymentType = new GraphQLObjectType({
     momo_transaction_id: { type: GraphQLString },
     location: { type: GraphQLString },
     address: { type: GraphQLString },
-    phone_number: { type: GraphQLString },
+    phoneNumber: { type: GraphQLString },
   }),
 });
 
@@ -293,8 +293,8 @@ const RootQuery = new GraphQLObjectType({
               ...result._doc,
               id: result.id,
               user: {
-                first_name: result.user.first_name,
-                last_name: result.user.last_name,
+                firstName: result.user.firstName,
+                lastName: result.user.lastName,
                 photoURL: result.user.photoURL,
               },
               rating: result.rating,
@@ -383,7 +383,6 @@ const RootQuery = new GraphQLObjectType({
       resolve(parentValue, { email, password }) {
         const loginUser = async () => {
           try {
-
             const user = await UserSchema.findOne({ email });
 
             const isEqual = await bcrypt.compare(password, user.password);
@@ -566,8 +565,8 @@ const RootQuery = new GraphQLObjectType({
                 ...result._doc,
                 id: result.id,
                 user: {
-                  first_name: result.user.first_name,
-                  last_name: result.user.last_name,
+                  firstName: result.user.firstName,
+                  lastName: result.user.lastName,
                   photoURL: result.user.photoURL,
                 },
                 rating: result.rating,
@@ -754,28 +753,28 @@ const RootMutation = new GraphQLObjectType({
     signup: {
       type: UserType,
       args: {
-        username: {
+        userName: {
           type: GraphQLString,
         },
         password: {
           type: GraphQLString,
         },
-        first_name: {
+        firstName: {
           type: GraphQLString,
         },
-        last_name: {
+        lastName: {
           type: GraphQLString,
         },
         email: {
           type: GraphQLString,
         },
-        phone_number: {
-          type: GraphQLInt,
+        phoneNumber: {
+          type: GraphQLString,
         },
       },
       resolve(
         parentValue,
-        { username, password, first_name, last_name, email, phone_number }
+        { userName, password, firstName, lastName, email, phoneNumber }
       ) {
         async function signup() {
           const hashedPassword = await bcrypt.hash(password, 12);
@@ -783,12 +782,12 @@ const RootMutation = new GraphQLObjectType({
             "https://www.beautifulpeople.com/cdn/beautifulpeople/images/default_profile/signup_male.png";
 
           const user = new UserSchema({
-            username: username,
+            userName: userName,
             password: hashedPassword,
-            first_name: first_name,
-            last_name: last_name,
+            firstName: firstName,
+            lastName: lastName,
             email: email,
-            phone_number: phone_number,
+            phoneNumber: phoneNumber,
             verified: false,
             photoURL: genericImage,
           });
@@ -799,7 +798,7 @@ const RootMutation = new GraphQLObjectType({
             });
 
             const findUsername = await UserSchema.findOne({
-              username: String(user.username),
+              userName: String(user.userName),
             });
 
             if (findUser) {
@@ -813,7 +812,7 @@ const RootMutation = new GraphQLObjectType({
             const userSignup = await user.save();
             return userSignup;
           } catch (err) {
-            console.log(err);
+            return new Error("Signup failed");
           }
         }
 
@@ -865,22 +864,22 @@ const RootMutation = new GraphQLObjectType({
         id: {
           type: new GraphQLNonNull(GraphQLID),
         },
-        first_name: {
+        firstName: {
           type: GraphQLString,
         },
-        last_name: {
+        lastName: {
           type: GraphQLString,
         },
       },
-      resolve(parentValue, { id, first_name, last_name }) {
+      resolve(parentValue, { id, firstName, lastName }) {
         async function updateUserName() {
           try {
             const updateUserName = await UserSchema.updateOne(
               { _id: id },
               {
                 $set: {
-                  first_name: first_name,
-                  last_name: last_name,
+                  firstName: firstName,
+                  lastName: lastName,
                 },
               },
               { omitUndefined: true }
@@ -889,8 +888,8 @@ const RootMutation = new GraphQLObjectType({
             updateUserName;
             return {
               id,
-              first_name,
-              last_name,
+              firstName,
+              lastName,
             };
           } catch (err) {
             console.log(err);
@@ -1000,10 +999,10 @@ const RootMutation = new GraphQLObjectType({
         id: {
           type: new GraphQLNonNull(GraphQLID),
         },
-        username: {
+        userName: {
           type: GraphQLString,
         },
-        phone_number: {
+        phoneNumber: {
           type: GraphQLString,
         },
         photoURL: {
@@ -1013,7 +1012,7 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLBoolean,
         },
       },
-      resolve(parentValue, { id, username, phone_number, photoURL, verified }) {
+      resolve(parentValue, { id, userName, phoneNumber, photoURL, verified }) {
         async function updateUserDetails() {
           try {
             const findUser = await UserSchema.findOne({ _id: id });
@@ -1026,8 +1025,8 @@ const RootMutation = new GraphQLObjectType({
               { _id: id },
               {
                 $set: {
-                  username,
-                  phone_number,
+                  userName,
+                  phoneNumber,
                   photoURL,
                   verified,
                 },
@@ -1038,8 +1037,8 @@ const RootMutation = new GraphQLObjectType({
             updateUserDetails;
             return {
               id,
-              username,
-              phone_number,
+              userName,
+              phoneNumber,
               photoURL,
               verified,
             };
@@ -1546,7 +1545,7 @@ const RootMutation = new GraphQLObjectType({
         address: {
           type: GraphQLString,
         },
-        phone_number: {
+        phoneNumber: {
           type: GraphQLString,
         },
       },
@@ -1561,7 +1560,7 @@ const RootMutation = new GraphQLObjectType({
           order_value,
           location,
           address,
-          phone_number,
+          phoneNumber,
         }
       ) {
         async function addPayment() {
@@ -1577,7 +1576,7 @@ const RootMutation = new GraphQLObjectType({
             const delivery = new DeliverySchema({
               location,
               address,
-              phone_number,
+              phoneNumber,
             });
 
             const savePayment = await payment.save();
