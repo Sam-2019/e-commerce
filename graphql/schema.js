@@ -11,6 +11,7 @@ const {
   GraphQLBoolean,
   GraphQLFloat,
 } = graphql;
+const bcrypt = require("bcryptjs");
 
 const ProductSchema = require("../db/schema/product");
 const UserSchema = require("../db/schema/user");
@@ -778,7 +779,7 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve(
         parentValue,
-        { userName, firstName, lastName, email, phoneNumber }
+        { userName, firstName, lastName, email, password, phoneNumber }
       ) {
         async function signup() {
           const saltRounds = 12;
