@@ -1,17 +1,18 @@
 const jwt = require("jsonwebtoken");
 
 module.exports = (req, res, next) => {
+//  console.log(req.headers.authorization);
 
- //console.log(req.get("Authorization"));
+  //console.log(req.get("Authorization"));
 
- // console.log(req.headers.authorization);
+  // console.log(req.headers.authorization);
 
   const authHeader = req.get("Authorization");
+  // console.log(authHeader);
   if (!authHeader) {
     req.isAuth = false;
     return next();
   }
-
 
   const token = authHeader.split(" ")[1];
   if (!token || token === "") {
@@ -26,7 +27,7 @@ module.exports = (req, res, next) => {
     req.isAuth = false;
     return next();
   }
-  
+
   if (!decodeToken) {
     req.isAuth = false;
     return next();
@@ -35,4 +36,4 @@ module.exports = (req, res, next) => {
   req.isAuth = true;
   req.userId = decodeToken.userId;
   next();
-}
+};
