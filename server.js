@@ -20,23 +20,56 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(isAuth);
+//app.use(isAuth);
 
 app.get("/", function (req, res) {
   res.end("Server up and running");
 });
 
+function getUser(req){
+  const data = req.headers.authorization || '';
+const token = data.split(" ")[1];
+
+
+          //   
+
+        //       console.log(token);
+
+  // Add the user to the context
+  return { user };
+  return token
+}
+
 app.use(
   "/graphql",
   graphqlHTTP((request) => {
-    // console.log(request);
     return {
       schema: DataSchema,
       graphiql: true,
       pretty: true,
+      context: { token: request.headers.authorization || "" },
     };
   })
 );
+
+// app.use(
+//   "/graphql",
+//   graphqlHTTP(
+//       schema: DataSchema,
+//       graphiql: true,
+//       pretty: true,
+//       context: () => {
+//         return console.log(req);
+//       },
+//       //    const token = req.headers.authorization || "";
+//       //    console.log(token);
+//       //     const user = getUser(token);
+
+//       // Add the user to the context
+//       //     return { user };//
+
+//   )
+// );
 
 app.listen(process.env.PORT || 5000);
 console.log("GraphQL server up!");
