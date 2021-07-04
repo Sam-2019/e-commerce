@@ -244,7 +244,7 @@ const RootQuery = new GraphQLObjectType({
         async function findProducts() {
           const productsCount = await ProductSchema.estimatedDocumentCount();
 
-          const data = await ProductSchema.find({})
+          const data = await ProductSchema.find()
             .skip(limit * offset - limit)
             .limit(limit);
 
@@ -361,13 +361,32 @@ const RootQuery = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve(parentValue, { id }) {
-        return UserSchema.findById(id).populate([
-          "cart",
-          "order",
-          "wishlist",
-          "review",
-        ]);
+      resolve(parentValue, { id }, request) {
+        //  const data = context.token;
+        //   const token = data.split(" ")[1];
+
+        //       console.log(token);
+
+    //    console.log(request.headers.authorization);
+
+        const getUser = async (token) => {
+          if (token) {
+            try {
+              return jwt.verify(token, "somesupersecretkey");
+            } catch (err) {
+              return new Error("Session invalid");
+            }
+          }
+        };
+
+    //    const user = getUser(token);
+    //    console.log(user);
+        // return UserSchema.findById(id).populate([
+        //   "cart",
+        //   "order",
+        //   "wishlist",
+        //   "review",
+        // ]);
       },
     },
 
@@ -395,11 +414,11 @@ const RootQuery = new GraphQLObjectType({
 
             const check = () => {
               if (!user) {
-                return new Error("User does not exist");
+                console.log("not registered");
               }
 
               if (!compareCurrentPassword) {
-                return new Error("Password is incoreect");
+                return new Error("Password is incorrect");
               }
 
               const token = jwt.sign(
