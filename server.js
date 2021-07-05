@@ -31,7 +31,7 @@ function getUser(req) {
 
   const data = req.headers.authorization || "";
   const token = data.split(" ")[1];
-//  console.log(token);
+  //  console.log(token);
 }
 
 app.use(
@@ -45,25 +45,6 @@ app.use(
     };
   })
 );
-
-// app.use(
-//   "/graphql",
-//   graphqlHTTP(
-//       schema: DataSchema,
-//       graphiql: true,
-//       pretty: true,
-//       context: () => {
-//         return console.log(req);
-//       },
-//       //    const token = req.headers.authorization || "";
-//       //    console.log(token);
-//       //     const user = getUser(token);
-
-//       // Add the user to the context
-//       //     return { user };//
-
-//   )
-// );
 
 app.listen(process.env.PORT || 5000);
 console.log("GraphQL server up!");
