@@ -356,37 +356,17 @@ const RootQuery = new GraphQLObjectType({
 
     user: {
       type: UserType,
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
-      },
-      resolve(parentValue, { id }, request) {
-        //  const data = context.token;
-        //   const token = data.split(" ")[1];
+      resolve(parentValue, req) {
+        if (!req.isAuth) {
+          return new Error("Unauthenticated");
+        }
 
-        //       console.log(token);
-
-    //    console.log(request.headers.authorization);
-
-        const getUser = async (token) => {
-          if (token) {
-            try {
-              return jwt.verify(token, "somesupersecretkey");
-            } catch (err) {
-              return new Error("Session invalid");
-            }
-          }
-        };
-
-    //    const user = getUser(token);
-    //    console.log(user);
-        // return UserSchema.findById(id).populate([
-        //   "cart",
-        //   "order",
-        //   "wishlist",
-        //   "review",
-        // ]);
+        return UserSchema.findById(req.userID).populate([
+          "cart",
+          "order",
+          "wishlist",
+          "review",
+        ]);
       },
     },
 
@@ -405,8 +385,6 @@ const RootQuery = new GraphQLObjectType({
           try {
             const user = await UserSchema.findOne({ email });
 
-            //  const isEqual = await bcrypt.compare(password, user.password);
-
             const compareCurrentPassword = await bcrypt.compare(
               password,
               user.password
@@ -414,7 +392,7 @@ const RootQuery = new GraphQLObjectType({
 
             const check = () => {
               if (!user) {
-                console.log("not registered");
+                return new Error("Not registered");
               }
 
               if (!compareCurrentPassword) {
@@ -422,7 +400,7 @@ const RootQuery = new GraphQLObjectType({
               }
 
               const token = jwt.sign(
-                { ID: user._id, email: user.email },
+                { userID: user._id, email: user.email },
                 "somesupersecretkey",
                 {
                   expiresIn: "1h",
@@ -430,7 +408,7 @@ const RootQuery = new GraphQLObjectType({
               );
 
               return {
-                user: user.id,
+                userID: String(user._id),
                 token: token,
                 tokenexpiration: 1,
               };
@@ -448,13 +426,12 @@ const RootQuery = new GraphQLObjectType({
 
     carts: {
       type: new GraphQLList(CartProductType),
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
-      },
-      resolve(parentValue, { id }) {
-        return CartSchema.find({ user: id })
+      resolve(parentValue, { id }, req) {
+        if (!req.isAuth) {
+          return new Error("Unauthenticated");
+        }
+
+        return CartSchema.find({ user: req.userID })
           .populate("product")
           .then((results) => {
             return results.map((result) => {
@@ -495,13 +472,12 @@ const RootQuery = new GraphQLObjectType({
 
     userOrder: {
       type: new GraphQLList(OrderItemType),
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
-      },
-      resolve(parentValue, { id }) {
+      resolve(parentValue, { id }, req) {
         async function userOrder() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
             const findUser = await OrderItemSchema.find({
               user: id,
@@ -543,13 +519,12 @@ const RootQuery = new GraphQLObjectType({
 
     wishlist: {
       type: new GraphQLList(WishListProductType),
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
-      },
-      resolve(parentValue, { id }) {
-        return WishListSchema.find({ user: id })
+      resolve(parentValue, { id }, req) {
+        if (!req.isAuth) {
+          return new Error("Unauthenticated");
+        }
+
+        return WishListSchema.find({ user: req.userID })
           .populate("product")
           .then((results) => {
             return results.map((result) => {
@@ -628,15 +603,14 @@ const RootQuery = new GraphQLObjectType({
 
     verification: {
       type: UserType,
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
-      },
-      resolve(parentValue, { id }) {
+      resolve(parentValue, { id }, req) {
         async function verificationStatus() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
-            const getStatus = await UserSchema.findById(id);
+            const getStatus = await UserSchema.findById(req.userID);
 
             return getStatus;
           } catch (err) {
@@ -708,9 +682,6 @@ const RootMutation = new GraphQLObjectType({
     updateProduct: {
       type: ProductType,
       args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
         name: {
           type: GraphQLString,
         },
@@ -735,12 +706,17 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve(
         parentValue,
-        { id, name, author, sku, price, imageURL, quantity, detail }
+        { id, name, author, sku, price, imageURL, quantity, detail }, req
       ) {
         async function updateProduct() {
+
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
             const find = ProductSchema.findOneAndUpdate(
-              { _id: id },
+              { _id: req.userID },
               {
                 $set: { name, author, sku, price, imageURL, quantity, detail },
               },
@@ -850,18 +826,19 @@ const RootMutation = new GraphQLObjectType({
     photoUser: {
       type: UserType,
       args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
         photoURL: {
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve(parentValue, { id, photoURL }) {
+      resolve(parentValue, { id, photoURL }, req) {
         async function photoUser() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
             const photo = await UserSchema.updateOne(
-              { _id: id },
+              { _id: req.userID },
               {
                 $set: {
                   photoURL,
@@ -873,7 +850,7 @@ const RootMutation = new GraphQLObjectType({
             photo;
 
             return {
-              id: id,
+              id: req.userID,
               photoURL: photoURL,
             };
           } catch (err) {
@@ -888,9 +865,6 @@ const RootMutation = new GraphQLObjectType({
     updateUserName: {
       type: UserType,
       args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
         firstName: {
           type: GraphQLString,
         },
@@ -898,11 +872,15 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve(parentValue, { id, firstName, lastName }) {
+      resolve(parentValue, { id, firstName, lastName }, req) {
         async function updateUserName() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
             const updateUserName = await UserSchema.updateOne(
-              { _id: id },
+              { _id: req.userID },
               {
                 $set: {
                   firstName: firstName,
@@ -914,7 +892,7 @@ const RootMutation = new GraphQLObjectType({
 
             updateUserName;
             return {
-              id,
+              id: req.userID,
               firstName,
               lastName,
             };
@@ -930,9 +908,6 @@ const RootMutation = new GraphQLObjectType({
     updateUserEmail: {
       type: UserType,
       args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
         email: {
           type: GraphQLString,
         },
@@ -940,8 +915,12 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve(parentValue, { id, email, newEmail }) {
+      resolve(parentValue, { id, email, newEmail }, req) {
         async function updateUserEmail() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
             const findEmail = await UserSchema.findOne({ email: email });
 
@@ -950,7 +929,7 @@ const RootMutation = new GraphQLObjectType({
             }
 
             const updateUserEmail = await UserSchema.updateOne(
-              { _id: id },
+              { _id: req.userID },
               {
                 $set: {
                   email: newEmail,
@@ -961,7 +940,7 @@ const RootMutation = new GraphQLObjectType({
 
             updateUserEmail;
             return {
-              id,
+              id: req.userID,
               email: newEmail,
             };
           } catch (err) {
@@ -976,9 +955,6 @@ const RootMutation = new GraphQLObjectType({
     updateUserPassword: {
       type: UserType,
       args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
         password: {
           type: GraphQLString,
         },
@@ -986,10 +962,14 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve(parentValue, { id, password, newPassword }) {
+      resolve(parentValue, { id, password, newPassword }, req) {
         async function updateUserPassword() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
-            const findUser = await UserSchema.findOne({ _id: id });
+            const findUser = await UserSchema.findOne({ _id: req.userID });
 
             const compareCurrentPassword = await bcrypt.compare(
               password,
@@ -1015,7 +995,7 @@ const RootMutation = new GraphQLObjectType({
             const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
             const updateUserPassword = await UserSchema.updateOne(
-              { _id: id },
+              { _id: req.userID },
               {
                 $set: {
                   password: hashedPassword,
@@ -1025,7 +1005,7 @@ const RootMutation = new GraphQLObjectType({
             );
             updateUserPassword;
             return {
-              id,
+              id: req.userID,
             };
           } catch (err) {
             return new Error("Password update failed");
@@ -1039,9 +1019,6 @@ const RootMutation = new GraphQLObjectType({
     updateUserDetail: {
       type: UserType,
       args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
         userName: {
           type: GraphQLString,
         },
@@ -1055,17 +1032,25 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLBoolean,
         },
       },
-      resolve(parentValue, { id, userName, phoneNumber, photoURL, verified }) {
+      resolve(
+        parentValue,
+        { id, userName, phoneNumber, photoURL, verified },
+        req
+      ) {
         async function updateUserDetails() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
-            const findUser = await UserSchema.findOne({ _id: id });
+            const findUser = await UserSchema.findOne({ _id: req.userID });
 
             if (!findUser) {
               return new Error("User doesn't exist");
             }
 
             const updateUserDetails = await UserSchema.updateOne(
-              { _id: id },
+              { _id: req.userID },
               {
                 $set: {
                   userName,
@@ -1079,7 +1064,7 @@ const RootMutation = new GraphQLObjectType({
 
             updateUserDetails;
             return {
-              id,
+              id: req.userID,
               userName,
               phoneNumber,
               photoURL,
@@ -1096,15 +1081,14 @@ const RootMutation = new GraphQLObjectType({
 
     deleteUser: {
       type: UserType,
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
-      },
-      resolve(parentValue, { id }) {
+      resolve(parentValue, { id }, req) {
         async function deleteUser() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
-            await UserSchema.findByIdAndDelete(id);
+            await UserSchema.findByIdAndDelete(req.userID);
             return true;
           } catch (err) {
             return false;
@@ -1117,9 +1101,6 @@ const RootMutation = new GraphQLObjectType({
     addCart: {
       type: CartType,
       args: {
-        user: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
         product: {
           type: new GraphQLNonNull(GraphQLID),
         },
@@ -1130,10 +1111,14 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve(parentValue, { user, product, price, quantity }) {
+      resolve(parentValue, { user, product, price, quantity }, req) {
         async function addCart() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           const cart = new CartSchema({
-            user,
+            user: req.userID,
             product,
             price,
             quantity,
@@ -1185,16 +1170,13 @@ const RootMutation = new GraphQLObjectType({
         id: {
           type: new GraphQLNonNull(GraphQLID),
         },
-        user: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
       },
-      resolve(parentValue, { id, user }) {
+      resolve(parentValue, { id, user }, req) {
         async function deleteCart() {
           try {
             const cart = await CartSchema.findByIdAndDelete(id);
 
-            const findUser = await UserSchema.findById(user);
+            const findUser = await UserSchema.findById(req.userID);
             await findUser.cart.remove(id);
             await findUser.save();
             return cart;
@@ -1210,9 +1192,6 @@ const RootMutation = new GraphQLObjectType({
     addOrder: {
       type: OrderType,
       args: {
-        user: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
         products: {
           type: GraphQLList(GraphQLID),
         },
@@ -1239,7 +1218,8 @@ const RootMutation = new GraphQLObjectType({
           status = "Pending",
           payment,
           delivery,
-        }
+        },
+        req
       ) {
         async function createOrder() {
           try {
@@ -1251,7 +1231,7 @@ const RootMutation = new GraphQLObjectType({
             }
 
             const order = new OrderSchema({
-              user,
+              user: req.userID,
               products: items,
               orderNumber,
               orderValue,
@@ -1262,7 +1242,7 @@ const RootMutation = new GraphQLObjectType({
 
             const saveItem = await order.save();
 
-            const findUser = await UserSchema.findById(user);
+            const findUser = await UserSchema.findById(order.user);
 
             await findUser.order.push(order);
 
@@ -1321,16 +1301,13 @@ const RootMutation = new GraphQLObjectType({
     addWishlist: {
       type: WishListType,
       args: {
-        user: {
-          type: new GraphQLNonNull(GraphQLID),
-        },
         product: {
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve(parentValue, { user, product }) {
+      resolve(parentValue, { user, product }, req) {
         const wishlist = new WishListSchema({
-          user,
+          user: req.userID,
           product,
         });
 
@@ -1392,9 +1369,6 @@ const RootMutation = new GraphQLObjectType({
     addReview: {
       type: AddReviewType,
       args: {
-        user: {
-          type: GraphQLID,
-        },
         product: {
           type: GraphQLID,
         },
@@ -1405,9 +1379,9 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve(parentValue, { user, product, rating, text }) {
+      resolve(parentValue, { user, product, rating, text }, req) {
         const review = new ReviewSchema({
-          user,
+          user: req.userID,
           product,
           rating,
           text,
