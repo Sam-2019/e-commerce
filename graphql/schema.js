@@ -356,17 +356,29 @@ const RootQuery = new GraphQLObjectType({
 
     user: {
       type: UserType,
+      args: {},
       resolve(parentValue, req) {
+        
         if (!req.isAuth) {
           return new Error("Unauthenticated");
         }
 
-        return UserSchema.findById(req.userID).populate([
-          "cart",
-          "order",
-          "wishlist",
-          "review",
-        ]);
+        const userDetails = async () => {
+          try {
+            const data = await UserSchema.findById(req.userID).populate([
+              "cart",
+              "order",
+              "wishlist",
+              "review",
+            ]);
+
+            return data;
+          } catch (err) {
+            return new Error("Error");
+          }
+        };
+
+        return userDetails();
       },
     },
 
@@ -706,10 +718,10 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve(
         parentValue,
-        { id, name, author, sku, price, imageURL, quantity, detail }, req
+        { id, name, author, sku, price, imageURL, quantity, detail },
+        req
       ) {
         async function updateProduct() {
-
           if (!req.isAuth) {
             return new Error("Unauthenticated");
           }
