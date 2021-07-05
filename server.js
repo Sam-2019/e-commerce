@@ -1,7 +1,7 @@
 const express = require("express");
 const { graphqlHTTP } = require("express-graphql");
 const DataSchema = require("./graphql/schema");
-
+const jwt = require("jsonwebtoken");
 const isAuth = require("./middleware/is-auth");
 
 require("./db/db");
@@ -26,18 +26,12 @@ app.get("/", function (req, res) {
   res.end("Server up and running");
 });
 
-function getUser(req){
-  const data = req.headers.authorization || '';
-const token = data.split(" ")[1];
+function getUser(req) {
+  const secret = "somesupersecretkey";
 
-
-          //   
-
-        //       console.log(token);
-
-  // Add the user to the context
-  return { user };
-  return token
+  const data = req.headers.authorization || "";
+  const token = data.split(" ")[1];
+//  console.log(token);
 }
 
 app.use(
@@ -47,7 +41,7 @@ app.use(
       schema: DataSchema,
       graphiql: true,
       pretty: true,
-      context: { token: request.headers.authorization || "" },
+      context: { data: getUser(request) },
     };
   })
 );
