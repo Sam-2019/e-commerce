@@ -194,8 +194,10 @@ const AddReviewType = new GraphQLObjectType({
 const LoginType = new GraphQLObjectType({
   name: "LoginType",
   fields: () => ({
-    user: { type: GraphQLID },
+    firstName: { type: GraphQLString },
+    lastName: { type: GraphQLString },
     email: { type: GraphQLString },
+    verified: { type: GraphQLBoolean },
     password: { type: GraphQLString },
     token: { type: GraphQLString },
     tokenexpiration: { type: GraphQLInt },
@@ -357,13 +359,12 @@ const RootQuery = new GraphQLObjectType({
     user: {
       type: UserType,
       args: {},
-      resolve(parentValue, req) {
-        
-        if (!req.isAuth) {
-          return new Error("Unauthenticated");
-        }
-
+      resolve(parentValue, {}, req) {
         const userDetails = async () => {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
             const data = await UserSchema.findById(req.userID).populate([
               "cart",
@@ -371,6 +372,9 @@ const RootQuery = new GraphQLObjectType({
               "wishlist",
               "review",
             ]);
+
+            //  const data = await UserSchema.findById(req.userID);
+            // console.log(data);
 
             return data;
           } catch (err) {
@@ -397,36 +401,35 @@ const RootQuery = new GraphQLObjectType({
           try {
             const user = await UserSchema.findOne({ email });
 
+            if (!user) {
+              return new Error("Not registered");
+            }
+
             const compareCurrentPassword = await bcrypt.compare(
               password,
               user.password
             );
 
-            const check = () => {
-              if (!user) {
-                return new Error("Not registered");
+            if (!compareCurrentPassword) {
+              return new Error("Password is incorrect");
+            }
+
+            const token = await jwt.sign(
+              { userID: user._id },
+              "somesupersecretkey",
+              {
+                expiresIn: "5h",
               }
+            );
 
-              if (!compareCurrentPassword) {
-                return new Error("Password is incorrect");
-              }
-
-              const token = jwt.sign(
-                { userID: user._id, email: user.email },
-                "somesupersecretkey",
-                {
-                  expiresIn: "1h",
-                }
-              );
-
-              return {
-                userID: String(user._id),
-                token: token,
-                tokenexpiration: 1,
-              };
+            return {
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              verified: user.verified,
+              token: token,
+              tokenexpiration: 1,
             };
-
-            return check();
           } catch (err) {
             return new Error("User does not exist");
           }
@@ -825,7 +828,12 @@ const RootMutation = new GraphQLObjectType({
             }
 
             const userSignup = await user.save();
-            return userSignup;
+
+            // jwt.sign(
+            //   { userID: user._id, email: user.email },
+            //   "somesupersecretkey"            );
+
+            return jwt.sign({ userID: userSignup._id }, "somesupersecretkey");
           } catch (err) {
             return new Error("Error creating account");
           }
