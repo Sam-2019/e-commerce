@@ -442,16 +442,17 @@ const RootQuery = new GraphQLObjectType({
     carts: {
       type: new GraphQLList(CartProductType),
       resolve(parentValue, { id }, req) {
-        if (!req.isAuth) {
-          return new Error("Unauthenticated");
-        }
+        const getCartItem = async () => {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+          try {
+            const userCartItems = await CartSchema.find({
+              user: req.userID,
+            }).populate("product");
 
-        return CartSchema.find({ user: req.userID })
-          .populate("product")
-          .then((results) => {
-            return results.map((result) => {
+            const mapUserCartItems = userCartItems.map((result) => {
               return {
-                ...result._doc,
                 cartID: result.id,
                 productID: result.product.id,
                 name: result.product.name,
@@ -462,7 +463,14 @@ const RootQuery = new GraphQLObjectType({
                 quantity: result.quantity,
               };
             });
-          });
+
+            return mapUserCartItems;
+          } catch (err) {
+            console.log(err);
+          }
+        };
+
+        return getCartItem();
       },
     },
 
@@ -494,18 +502,17 @@ const RootQuery = new GraphQLObjectType({
           }
 
           try {
-            const findUser = await OrderItemSchema.find({
+            const userOrderItems = await OrderItemSchema.find({
               user: id,
             }).populate(["product", "orderID"]);
 
             let productStatus;
-            for (let x of findUser) {
+            for (let x of userOrderItems) {
               productStatus = x.orderID.status;
             }
 
-            return findUser.map((result) => {
+            const mapUserOrderItems = await userOrderItems.map((result) => {
               return {
-                ...result._doc,
                 id: result.id,
                 name: result.product.name,
                 author: result.product.author,
@@ -516,6 +523,22 @@ const RootQuery = new GraphQLObjectType({
                 status: productStatus,
               };
             });
+
+            return mapUserOrderItems;
+
+            // return findUser.map((result) => {
+            //   return {
+            //     ...result._doc,
+            //     id: result.id,
+            //     name: result.product.name,
+            //     author: result.product.author,
+            //     sku: result.product.sku,
+            //     price: result.product.price,
+            //     imageURL: result.product.imageURL,
+            //     quantity: result.quantity,
+            //     status: productStatus,
+            //   };
+            // });
           } catch (err) {
             console.log(err);
           }
