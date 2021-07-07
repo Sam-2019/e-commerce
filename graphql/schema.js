@@ -1189,7 +1189,9 @@ const RootMutation = new GraphQLObjectType({
               return saveItem();
             }
 
-            const quantity = cart.quantity;
+
+            const convert2Number = Number(checkAvailability.quantity) + 1;
+            const quantity = String(convert2Number);
 
             const updateQuantity = await CartSchema.findOneAndUpdate(
               { _id: checkAvailability.id },
