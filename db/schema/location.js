@@ -8,6 +8,9 @@ const LocationSchema = new Schema({
   fee: {
     type: String,
   },
+  disable: {
+    type: Boolean,
+  },
 });
 
 module.exports = mongoose.model("Location", LocationSchema);
