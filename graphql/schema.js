@@ -47,6 +47,14 @@ const DeliveryType = new GraphQLObjectType({
   }),
 });
 
+const AdjustQuantityType = new GraphQLObjectType({
+  name: "AdjustQuantityType",
+  fields: () => ({
+    product: { type: GraphQLID },
+    quantity: { type: GraphQLString },
+  }),
+});
+
 const PaginationType = new GraphQLObjectType({
   name: "PaginationType",
   fields: () => ({
@@ -210,6 +218,7 @@ const LocationType = new GraphQLObjectType({
     id: { type: GraphQLID },
     location: { type: GraphQLString },
     fee: { type: GraphQLString },
+    disable: { type: GraphQLBoolean },
   }),
 });
 
@@ -1189,7 +1198,6 @@ const RootMutation = new GraphQLObjectType({
               return saveItem();
             }
 
-
             const convert2Number = Number(checkAvailability.quantity) + 1;
             const quantity = String(convert2Number);
 
@@ -1234,17 +1242,100 @@ const RootMutation = new GraphQLObjectType({
       },
     },
 
+    incrementCartItem: {
+      type: AdjustQuantityType,
+      args: {
+        product: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        quantity: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve(parentValue, { product, quantity }, req) {
+        async function incrementQty() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
+          try {
+            const checkAvailability = await CartSchema.findById(product);
+
+            if (!checkAvailability) {
+              return;
+            }
+
+            const convert2Number = Number(checkAvailability.quantity) + 1;
+            const quantity = String(convert2Number);
+
+            await CartSchema.findOneAndUpdate(
+              { _id: checkAvailability.id },
+              { $set: { quantity } },
+              { omitUndefined: false }
+            );
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return incrementQty();
+      },
+    },
+
+    decrementCartItem: {
+      type: AdjustQuantityType,
+      args: {
+        product: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+        quantity: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve(parentValue, { product, quantity }, req) {
+        async function incrementQty() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
+          try {
+            const checkAvailability = await CartSchema.findById(product);
+
+            if (!checkAvailability) {
+              return;
+            }
+
+            const convert2Number = Number(checkAvailability.quantity) - 1;
+            const quantity = String(convert2Number);
+
+            await CartSchema.findOneAndUpdate(
+              { _id: checkAvailability.id },
+              { $set: { quantity } },
+              { omitUndefined: false }
+            );
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return incrementQty();
+      },
+    },
+
     addOrder: {
       type: OrderType,
       args: {
+        user: {
+          type: GraphQLID,
+        },
         products: {
           type: GraphQLList(GraphQLID),
         },
         payment: {
-          type: new GraphQLNonNull(GraphQLID),
+          type: GraphQLID,
         },
         delivery: {
-          type: new GraphQLNonNull(GraphQLID),
+          type: GraphQLID,
         },
         orderNumber: {
           type: GraphQLString,
@@ -1253,20 +1344,12 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve(
-        parentValue,
-        {
-          user,
-          products,
-          orderNumber,
-          orderValue,
-          status = "Pending",
-          payment,
-          delivery,
-        },
-        req
-      ) {
+      resolve(parentValue, { products, orderNumber, payment, delivery }, req) {
         async function createOrder() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
             let items = [];
 
@@ -1279,23 +1362,42 @@ const RootMutation = new GraphQLObjectType({
               user: req.userID,
               products: items,
               orderNumber,
-              orderValue,
-              status,
+              orderValue: String(0),
+              status: "pending",
               payment,
               delivery,
             });
 
+            //save order in ORDER collection
             const saveItem = await order.save();
 
+            //find user in saved USER collection
             const findUser = await UserSchema.findById(order.user);
 
+            //push saved order ID to user doc in USER collection
             await findUser.order.push(order);
-
             await findUser.save();
 
+            //loop user ORDER products list
+            //in the list grab each product's ID
+            //check if grabbed ID is in user's CART collection
+            //find each product's quantity
+            //create ORDERITEM collection
+            //save product doc in ORDERITEM collection
             async function saveOrderItem() {
+              let getOrderValueArray = [];
+
+              let collect = [];
+
               for (productID of products) {
                 const findQty = await CartSchema.findOne({ _id: productID });
+
+                //get a product's price and quantity
+                //multiply result
+                const findValue =
+                  Number(findQty.price) * Number(findQty.quantity);
+                  //push findValue to collect array
+                collect.push(findValue);
 
                 const saveOrderItem = await new OrderItemSchema({
                   user: saveItem.user,
@@ -1306,6 +1408,24 @@ const RootMutation = new GraphQLObjectType({
 
                 await saveOrderItem.save();
               }
+
+              //function to sum array contents
+              function sumPrice(total, value) {
+                return total + value;
+              }
+
+              //sum array items
+              let sum = collect.reduce(sumPrice);
+
+              //find order doc in ORDER collection
+              //update orderValue with value from sum fumc
+              await OrderSchema.findOneAndUpdate(
+                { _id: saveItem._id },
+                {
+                  $set: { orderValue: String(sum.toFixed(2)) },
+                },
+                { omitUndefined: false }
+              );
             }
 
             await saveOrderItem();
