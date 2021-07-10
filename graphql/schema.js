@@ -226,7 +226,7 @@ const PaymentType = new GraphQLObjectType({
   name: "PaymentType",
   fields: () => ({
     id: { type: GraphQLID },
-    orderValue: { type: GraphQLString },
+    orderNumber: { type: GraphQLString },
     method: { type: GraphQLString },
     status: { type: GraphQLString },
     momoName: { type: GraphQLString },
@@ -1344,7 +1344,7 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve(parentValue, { products, orderNumber, payment, delivery }, req) {
+      resolve(parentValue, { products, orderNumber }, req) {
         async function createOrder() {
           if (!req.isAuth) {
             return new Error("Unauthenticated");
@@ -1364,8 +1364,6 @@ const RootMutation = new GraphQLObjectType({
               orderNumber,
               orderValue: String(0),
               status: "pending",
-              payment,
-              delivery,
             });
 
             //save order in ORDER collection
@@ -1385,8 +1383,6 @@ const RootMutation = new GraphQLObjectType({
             //create ORDERITEM collection
             //save product doc in ORDERITEM collection
             async function saveOrderItem() {
-              let getOrderValueArray = [];
-
               let collect = [];
 
               for (productID of products) {
@@ -1394,10 +1390,10 @@ const RootMutation = new GraphQLObjectType({
 
                 //get a product's price and quantity
                 //multiply result
-                const findValue =
+                const getAmountPayablePerProduct =
                   Number(findQty.price) * Number(findQty.quantity);
-                  //push findValue to collect array
-                collect.push(findValue);
+                //push getAmountPayablePerProduct to collect array
+                collect.push(getAmountPayablePerProduct);
 
                 const saveOrderItem = await new OrderItemSchema({
                   user: saveItem.user,
@@ -1715,19 +1711,19 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
         status: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         },
         momoName: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         },
         momoNumber: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         },
         momoTransactionID: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         },
-        orderValue: {
-          type: new GraphQLNonNull(GraphQLString),
+        orderNumber: {
+          type: GraphQLString,
         },
         location: {
           type: GraphQLString,
@@ -1743,21 +1739,25 @@ const RootMutation = new GraphQLObjectType({
         parentValue,
         {
           method,
-          status,
           momoName,
           momoNumber,
           momoTransactionID,
-          orderValue,
+          orderNumber,
           location,
           address,
           phoneNumber,
-        }
+        },
+        req
       ) {
         async function addPayment() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
             const payment = new PaymentSchema({
               method,
-              status,
+              status: "pending",
               momoName,
               momoNumber,
               momoTransactionID,
@@ -1773,7 +1773,7 @@ const RootMutation = new GraphQLObjectType({
             const saveDelivery = await delivery.save();
 
             const Update = await OrderSchema.updateOne(
-              { orderValue: orderValue },
+              { orderNumber: orderNumber },
               {
                 $set: {
                   payment: savePayment.id,
