@@ -383,7 +383,6 @@ const RootQuery = new GraphQLObjectType({
             ]);
 
             //  const data = await UserSchema.findById(req.userID);
-            // console.log(data);
 
             return data;
           } catch (err) {
@@ -785,8 +784,11 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve(parentValue, { id }) {
+      resolve(parentValue, { id }, req) {
         async function deleteProduct() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
           try {
             await ProductSchema.findByIdAndDelete(id);
             return true;
@@ -1224,12 +1226,16 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve(parentValue, { id, user }, req) {
+      resolve(parentValue, { id }, req) {
         async function deleteCart() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
             const cart = await CartSchema.findByIdAndDelete(id);
 
-            const findUser = await UserSchema.findById(req.userID);
+            const findUser = await UserSchema.findById(cart.user);
             await findUser.cart.remove(id);
             await findUser.save();
             return cart;
@@ -1238,7 +1244,7 @@ const RootMutation = new GraphQLObjectType({
           }
         }
 
-        deleteCart();
+        return deleteCart();
       },
     },
 
@@ -1443,8 +1449,11 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve(parentValue, { id }) {
+      resolve(parentValue, { id }, req) {
         async function deleteOrder() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
           try {
             const order = await OrderSchema.findByIdAndDelete(id);
             const findUser = await UserSchema.findById(order.user);
@@ -1510,8 +1519,11 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve(parentValue, { id }) {
+      resolve(parentValue, { id }, req) {
         async function deleteWishlist() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
           try {
             const wishlist = await WishListSchema.findByIdAndDelete(id);
             const findUser = await UserSchema.findById(wishlist.user);
@@ -1581,8 +1593,11 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve(parentValue, { id }) {
+      resolve(parentValue, { id }, req) {
         async function deleteReview() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
           try {
             const removeReview = await ReviewSchema.findByIdAndDelete(id);
 
@@ -1690,8 +1705,11 @@ const RootMutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve(parentValue, { id }) {
+      resolve(parentValue, { id }, req) {
         async function deleteLocation() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
           try {
             const deleteItem = await LocationSchema.findByIdAndDelete(id);
             return deleteItem;
