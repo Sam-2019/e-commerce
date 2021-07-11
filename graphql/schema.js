@@ -503,7 +503,7 @@ const RootQuery = new GraphQLObjectType({
 
     userOrder: {
       type: new GraphQLList(OrderItemType),
-      resolve(parentValue, { id }, req) {
+      resolve(parentValue, {}, req) {
         async function userOrder() {
           if (!req.isAuth) {
             return new Error("Unauthenticated");
@@ -511,7 +511,7 @@ const RootQuery = new GraphQLObjectType({
 
           try {
             const userOrderItems = await OrderItemSchema.find({
-              user: id,
+              user: req.userID,
             }).populate(["product", "orderID"]);
 
             let productStatus;
@@ -553,6 +553,33 @@ const RootQuery = new GraphQLObjectType({
         }
 
         return userOrder();
+      },
+    },
+
+    getOrderAmount: {
+      type: OrderType,
+      args: {
+        orderNumber: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parentValue, { orderNumber }, req) {
+        async function getAmount() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
+          try {
+            const getOrderValue = await OrderSchema.findOne({
+              orderNumber: orderNumber,
+            });
+            return getOrderValue;
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return getAmount();
       },
     },
 
@@ -926,7 +953,7 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve(parentValue, { id, firstName, lastName }, req) {
+      resolve(parentValue, { firstName, lastName }, req) {
         async function updateUserName() {
           if (!req.isAuth) {
             return new Error("Unauthenticated");
@@ -1359,6 +1386,12 @@ const RootMutation = new GraphQLObjectType({
           try {
             let items = [];
 
+            // products.forEach((product) => {
+            //   const findProduct = await CartSchema.findOne({ _id: product });
+            //   items.push(findProduct.product);
+            //   //    items[items.length] = product;
+            // });
+
             for (productID of products) {
               const findProduct = await CartSchema.findOne({ _id: productID });
               items.push(findProduct.product);
@@ -1454,6 +1487,7 @@ const RootMutation = new GraphQLObjectType({
           if (!req.isAuth) {
             return new Error("Unauthenticated");
           }
+
           try {
             const order = await OrderSchema.findByIdAndDelete(id);
             const findUser = await UserSchema.findById(order.user);
@@ -1465,6 +1499,83 @@ const RootMutation = new GraphQLObjectType({
         }
 
         return deleteOrder();
+      },
+    },
+
+    deleteOrderItem: {
+      type: CartType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve(parentValue, { id }, req) {
+        async function deleteOrderItem() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
+          try {
+            const findItem = await OrderItemSchema.findById(id);
+            const getProductIDFromOrderItem = await findItem.product;
+            const getQuantityFromOrderItem = await findItem.quantity;
+            const getProductPrice = await ProductSchema.findById(
+              getProductIDFromOrderItem
+            );
+
+            //    console.log(getProductIDFromOrderItem);
+            //      console.log(getQuantityFromOrderItem);
+            //        console.log(getProductPrice.price);
+
+            const getAmountPayablePerProduct =
+              Number(getQuantityFromOrderItem) * Number(getProductPrice.price);
+
+            const findOrder = await OrderSchema.findById(findItem.orderID);
+
+            const getOrderValue = await findOrder.orderValue;
+            const deductDeleteItemAmount =
+              Number(getOrderValue) - Number(getAmountPayablePerProduct);
+
+            if (findOrder.products.length > 1) {
+              console.log("array length > 1");
+              await OrderItemSchema.findByIdAndDelete(id);
+              await findOrder.products.remove(getProductIDFromOrderItem);
+              await findOrder.save();
+
+              await OrderSchema.findOneAndUpdate(
+                { _id: findOrder._id },
+                {
+                  $set: {
+                    orderValue: String(deductDeleteItemAmount.toFixed(2)),
+                  },
+                },
+                { omitUndefined: false }
+              );
+
+              return findItem;
+            }
+
+            if (findOrder.products.length === 1) {
+              console.log("array length = 1");
+
+              await OrderItemSchema.findByIdAndDelete(id);
+              await OrderSchema.findByIdAndDelete(findOrder._id);
+              await DeliverySchema.findByIdAndDelete(findOrder.delivery);
+              await PaymentSchema.findByIdAndDelete(findOrder.payment);
+              //find order in USER collection
+              const findUser = await UserSchema.findById(findOrder.user);
+              //remove order in User collection
+              await findUser.order.remove(findOrder._id);
+              await findUser.save();
+
+              return findItem;
+            }
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        return deleteOrderItem();
       },
     },
 
