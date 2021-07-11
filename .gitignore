@@ -8,4 +8,7 @@ fastify server.js
 /subscription
 /cors
 /db/.env
+/locations.json
+/graphql/new schema.js
+/try.js
 
