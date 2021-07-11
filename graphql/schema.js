@@ -1469,6 +1469,10 @@ const RootMutation = new GraphQLObjectType({
                 await CartSchema.findOneAndDelete({
                   _id: productID,
                 });
+
+                //remove order in User collection
+                await findUser.cart.remove(productID);
+                await findUser.save();
               }
             }
 
@@ -1548,7 +1552,7 @@ const RootMutation = new GraphQLObjectType({
               Number(getOrderValue) - Number(getAmountPayablePerProduct);
 
             if (findOrder.products.length > 1) {
-     //         console.log("array length > 1");
+              //         console.log("array length > 1");
               await OrderItemSchema.findByIdAndDelete(id);
               await findOrder.products.remove(getProductIDFromOrderItem);
               await findOrder.save();
@@ -1567,7 +1571,7 @@ const RootMutation = new GraphQLObjectType({
             }
 
             if (findOrder.products.length === 1) {
-          //    console.log("array length = 1");
+              //    console.log("array length = 1");
 
               await OrderItemSchema.findByIdAndDelete(id);
               await OrderSchema.findByIdAndDelete(findOrder._id);
@@ -1674,16 +1678,20 @@ const RootMutation = new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve(parentValue, { user, product, rating, text }, req) {
-        const review = new ReviewSchema({
-          user: req.userID,
-          product,
-          rating,
-          text,
-        });
-
+      resolve(parentValue, { product, rating, text }, req) {
         async function createReview() {
+          if (!req.isAuth) {
+            return new Error("Unauthenticated");
+          }
+
           try {
+            const review = new ReviewSchema({
+              user: req.userID,
+              product,
+              rating,
+              text,
+            });
+
             const saveItem = await review.save();
 
             const findProduct = await ProductSchema.findById(saveItem.product);
