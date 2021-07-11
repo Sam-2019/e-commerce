@@ -1463,7 +1463,18 @@ const RootMutation = new GraphQLObjectType({
               );
             }
 
+            async function deleteItemFromCart() {
+              //     console.log(products);
+              for (productID of products) {
+                await CartSchema.findOneAndDelete({
+                  _id: productID,
+                });
+              }
+            }
+
             await saveOrderItem();
+
+            await deleteItemFromCart();
 
             return order;
           } catch (err) {
@@ -1537,7 +1548,7 @@ const RootMutation = new GraphQLObjectType({
               Number(getOrderValue) - Number(getAmountPayablePerProduct);
 
             if (findOrder.products.length > 1) {
-              console.log("array length > 1");
+     //         console.log("array length > 1");
               await OrderItemSchema.findByIdAndDelete(id);
               await findOrder.products.remove(getProductIDFromOrderItem);
               await findOrder.save();
@@ -1556,7 +1567,7 @@ const RootMutation = new GraphQLObjectType({
             }
 
             if (findOrder.products.length === 1) {
-              console.log("array length = 1");
+          //    console.log("array length = 1");
 
               await OrderItemSchema.findByIdAndDelete(id);
               await OrderSchema.findByIdAndDelete(findOrder._id);
