@@ -26,18 +26,6 @@ const PaymentSchema = require("../db/schema/payment");
 const DeliverySchema = require("../db/schema/delivey");
 const models = require("../db/index");
 
-const ItemType = new GraphQLInterfaceType({
-  name: "ItemType",
-  fields: {
-    name: { type: GraphQLString },
-    sku: { type: GraphQLString },
-    author: { type: GraphQLString },
-    price: { type: GraphQLString },
-    imageURL: { type: GraphQLString },
-    quantity: { type: GraphQLInt },
-  },
-});
-
 const DeliveryType = new GraphQLObjectType({
   name: "DeliveryType",
   fields: () => ({
@@ -125,6 +113,15 @@ const CartProductType = new GraphQLObjectType({
   }),
 });
 
+const WishListType = new GraphQLObjectType({
+  name: "WishListType",
+  fields: () => ({
+    id: { type: GraphQLID },
+    user: { type: GraphQLID },
+    product: { type: GraphQLID },
+  }),
+});
+
 const WishListProductType = new GraphQLObjectType({
   name: "WishListProductType",
   fields: () => ({
@@ -163,15 +160,6 @@ const OrderItemType = new GraphQLObjectType({
     imageURL: { type: GraphQLString },
     quantity: { type: GraphQLString },
     status: { type: GraphQLString },
-  }),
-});
-
-const WishListType = new GraphQLObjectType({
-  name: "WishListType",
-  fields: () => ({
-    id: { type: GraphQLID },
-    user: { type: GraphQLID },
-    product: { type: GraphQLID },
   }),
 });
 
