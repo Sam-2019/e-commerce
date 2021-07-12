@@ -10,5 +10,6 @@ fastify server.js
 /db/.env
 /locations.json
 /graphql/new schema.js
+/new graphql
 /try.js
 
