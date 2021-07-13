@@ -2,9 +2,10 @@ const express = require("express");
 const { graphqlHTTP } = require("express-graphql");
 const DataSchema = require("./graphql/schema");
 const isAuth = require("./middleware/is-auth");
+const dotenv = require("dotenv")
 
 require("./db/db");
-require("dotenv").config();
+dotenv.config();
 
 const app = express();
 
