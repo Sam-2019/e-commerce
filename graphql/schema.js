@@ -412,7 +412,7 @@ const RootQuery = new GraphQLObjectType({
 
             const token = await jwt.sign(
               { userID: user._id },
-              "somesupersecretkey",
+              `${process.env.JWT_SECRET}`,
               {
                 expiresIn: "5h",
               }
@@ -880,9 +880,9 @@ const RootMutation = new GraphQLObjectType({
 
             // jwt.sign(
             //   { userID: user._id, email: user.email },
-            //   "somesupersecretkey"            );
+            //   `${process.env.JWT_SECRET}`            );
 
-            return jwt.sign({ userID: userSignup._id }, "somesupersecretkey");
+            return jwt.sign({ userID: userSignup._id }, `${process.env.JWT_SECRET}`);
           } catch (err) {
             return new Error("Error creating account");
           }
