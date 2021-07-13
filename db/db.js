@@ -1,21 +1,13 @@
 const mongoose = require("mongoose");
-const keys = require("../db/keys");
+const mongoURI = `mongodb+srv://${process.env.DB_TOKEN}:${process.env.DB_KEY}@cluster0.dottv.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 
-mongoose.connect(keys.mongoURI, {
+mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
   autoIndex: false,
   useFindAndModify: false,
 });
-
-//mongoose.connect("mongodb://localhost:27017/e-commerce", {
-// useNewUrlParser: true,
-// useUnifiedTopology: true,
-//useCreateIndex: true,
-// autoIndex: false,
-// useFindAndModify: false,
-// });
 
 var dbConn = mongoose.connection;
 dbConn.on("connected", function () {
