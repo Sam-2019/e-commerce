@@ -6,7 +6,7 @@ interface User {
   email: EmailAddress
   photoURL: String
   phoneNumber: Int
-  verified: Boolean
+  verified: Verification
 }
 
 interface Product {
