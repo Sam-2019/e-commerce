@@ -1,0 +1,47 @@
+interface User {
+  userName: String
+  firstName: String
+  lastName: String
+  email: String
+  email: EmailAddress
+  photoURL: String
+  phoneNumber: Int
+  verified: Boolean
+}
+
+interface Product {
+  name: String
+  shortName: String
+  price: Float
+  imageURL: String
+}
+
+interface Review {
+  review: Markdown
+  rating: Float
+  createdAt: String
+}
+
+interface Location {
+  name: String
+  fee: Float
+}
+
+interface Payment {
+  method: String
+  status: StatusType
+  phoneNumber: Int
+  momoName: String
+  momoNumber: Int
+  momoTransactionID: String
+}
+
+interface Cash {
+
+}
+
+interface Delivery {
+  digitalAddress: String
+  landmark: String
+}
+
