@@ -1,4 +1,4 @@
-type UserDetails implements User {
+type UserDetail implements User {
   userID: ID
   userName: String
   firstName: String
@@ -6,14 +6,14 @@ type UserDetails implements User {
   email: EmailAddress
   photoURL: String
   phoneNumber: Int
-  verified: Boolean
+  verified: Verification
   cart: [Cart]
   order: [Order]
   wishlist: [WishList]
   review: [Review]
 }
 
-type ProductDetails implements Product {
+type ProductDetail implements Product {
   productID: ID
   name: String
   shortName: String
@@ -61,12 +61,12 @@ type WishListItem implements Product {
 type Order {
   orderID: ID
   userID: ID
-  products: [ProductDetails]
+  products: [ProductDetail]
   paymentID: ID
   deliveryID: ID
   orderNumber: Int
   orderValue: Float
-  status: StatusType
+  status: Status
 }
 
 type OrderItem implements Product {
@@ -76,10 +76,10 @@ type OrderItem implements Product {
   price: Float
   imageURL: String
   quantity: Int
-  status: StatusType
+  status: Status
 }
 
-type ReviewDetails implements Review {
+type ReviewDetail implements Review {
   reviewID: ID
   user: User
   productID: ID
@@ -88,17 +88,17 @@ type ReviewDetails implements Review {
   createdAt: String
 }
 
-type LocationDetails implements Location {
+type LocationDetail implements Location {
   locationID: ID
   disable: Boolean
   name: String
   fee: Float
 }
 
-type PaymentDetails implements Payment {
+type PaymentDetail implements Payment {
   paymentID: ID
   method: String
-  status: StatusType
+  status: Status
   phoneNumber: Int
   momoName: String
   momoNumber: Int
@@ -115,7 +115,7 @@ type MobileMoney {
   momoTransactionID: String
 }
 
-type DeliveryDetails implements Delivery {
+type DeliveryDetail implements Delivery {
   deliveryID: ID
   locationID: ID
   digitalAddress: String
@@ -124,7 +124,7 @@ type DeliveryDetails implements Delivery {
 
 type Pagination {
   count: Int
-  products: [ProductDetails]
+  products: [ProductDetail]
 }
 
 type AuthenticationData {
