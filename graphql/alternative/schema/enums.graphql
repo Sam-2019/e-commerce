@@ -1,0 +1,17 @@
+  enum Status {
+    PENDING
+    PROCESSED
+    SHIPPED
+    FULFILLED
+    CANCELLED
+  }
+
+  enum PaymentMethod {
+    CASH
+    MOMO
+  }
+
+  enum Verification {
+    TRUE
+    False
+  }
