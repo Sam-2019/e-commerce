@@ -1,0 +1,65 @@
+input CreateUser {
+  userName: String
+  firstName: String
+  lastName: String
+  email: EmailAddress
+  password: String
+  phoneNumber: Int
+}
+
+input AddProduct {
+  name: String
+  shortName: String
+  price: Float
+  imageURL: String
+  quantity: Int
+  detail: String
+  description: Markdown
+}
+
+input AddCart {
+  productID: ID
+  quantity: Int
+}
+
+input AddWishList {
+  productID: ID
+}
+
+input AddOrder {
+  products: [ID]
+  paymentID: ID
+  deliveryID: ID
+  orderNumber: Int
+  orderValue: Float
+}
+
+input AddReview {
+  productID: ID
+  rating: Float
+  review: Markdown
+}
+
+input Login {
+  email: EmailAddress
+  password: String
+}
+
+input AddLocation {
+  location: String
+  fee: Float
+}
+
+input AddPayment {
+  method: String
+  status: StatusType
+  phoneNumber: Int
+  momoName: String
+  momoNumber: Int
+  momoTransactionID: String
+}
+
+input AddDelivery {
+  digitalAddress: String
+  landmark: String
+}
