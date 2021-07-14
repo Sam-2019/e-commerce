@@ -1,0 +1,38 @@
+fragment UserDetails on User {
+  userName: String
+  firstName: String
+  lastName: String
+  email: String
+  email: EmailAddress
+  photoURL: String
+  phoneNumber: Int
+  verified: Boolean
+}
+
+fragment ProductDetails on Product {
+  name: String
+  shortName: String
+  price: Float
+  imageURL: String
+}
+
+fragment CartItemDetails on Product {
+  name: String
+  shortName: String
+  price: Float
+  imageURL: String
+}
+
+fragment WishListItemDetails on Product {
+  name: String
+  shortName: String
+  price: Float
+  imageURL: String
+}
+
+fragment OrderItemDetails on Product {
+  name: String
+  shortName: String
+  price: Float
+  imageURL: String
+}
