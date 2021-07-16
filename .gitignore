@@ -6,11 +6,10 @@ fastify server.js
 /graphql/pubsub.js
 /graphql/updateUser.js
 /subscription
+/helper.js
 /cors
 /db/.env
 /locations.json
-/graphql/new schema.js
-/new graphql
-/try.js
+/graphql/alternative/mutation funcs.js
+/graphql/alternative/query funcs.js
 /oldServer.js
-
