@@ -97,16 +97,13 @@ type LocationDetail implements Location {
 
 type PaymentDetail implements Payment {
   paymentID: ID
-  method: String
+  method: PaymentMethod
   status: Status
   phoneNumber: Int
-  momoName: String
-  momoNumber: Int
-  momoTransactionID: String
 }
 
 type Cash {
-  momoName: String
+  amount: Float
 }
 
 type MobileMoney {
@@ -118,7 +115,7 @@ type MobileMoney {
 type DeliveryDetail implements Delivery {
   deliveryID: ID
   locationID: ID
-  digitalAddress: String
+  address: DigitalAddress
   landmark: String
 }
 
