@@ -1,8 +1,7 @@
 interface User {
-  userName: String
+  username: String
   firstName: String
   lastName: String
-  email: String
   email: EmailAddress
   photoURL: String
   phoneNumber: Int
@@ -11,7 +10,7 @@ interface User {
 
 interface Product {
   name: String
-  shortName: String
+  slug: String
   price: Float
   imageURL: String
 }
@@ -27,21 +26,15 @@ interface Location {
   fee: Float
 }
 
-interface Payment {
-  method: String
-  status: StatusType
-  phoneNumber: Int
-  momoName: String
-  momoNumber: Int
-  momoTransactionID: String
-}
+  interface Payment {
+    method: PaymentMethod
+    status: Status
+    phoneNumber: Int
 
-interface Cash {
-
-}
+  }
 
 interface Delivery {
-  digitalAddress: String
+  address: DigitalAddress
   landmark: String
 }
 
