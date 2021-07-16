@@ -1,5 +1,5 @@
 fragment UserDetail on User {
-  userName: String
+  username: String
   firstName: String
   lastName: String
   email: String
