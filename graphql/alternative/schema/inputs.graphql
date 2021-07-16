@@ -1,5 +1,5 @@
 input CreateUser {
-  userName: String
+  username: String
   firstName: String
   lastName: String
   email: EmailAddress
@@ -9,7 +9,7 @@ input CreateUser {
 
 input AddProduct {
   name: String
-  shortName: String
+  slug: String
   price: Float
   imageURL: String
   quantity: Int
@@ -51,15 +51,12 @@ input AddLocation {
 }
 
 input AddPayment {
-  method: String
+  method: PaymentMethod
   status: StatusType
   phoneNumber: Int
-  momoName: String
-  momoNumber: Int
-  momoTransactionID: String
 }
 
 input AddDelivery {
-  digitalAddress: String
+  address: DigitalAddress
   landmark: String
 }
