@@ -7,11 +7,19 @@
   }
 
   enum PaymentMethod {
-    CASH
-    MOMO
+    Cash
+    MobileMoney
   }
 
   enum Verification {
     TRUE
-    False
+    FALSE
+  }
+
+  enum ErrorCode {
+    OK
+    CREATED
+    FOUND
+    UNAUTHORIZED
+    NOTFOUND
   }
