@@ -6,33 +6,33 @@ fragment UserDetail on User {
   email: EmailAddress
   photoURL: String
   phoneNumber: Int
-  verified: Verification
+  verified: Boolean
 }
 
 fragment ProductDetail on Product {
   name: String
-  shortName: String
+  slug: String
   price: Float
   imageURL: String
 }
 
 fragment CartItemDetail on Product {
   name: String
-  shortName: String
+  slug: String
   price: Float
   imageURL: String
 }
 
 fragment WishListItemDetail on Product {
   name: String
-  shortName: String
+  slug: String
   price: Float
   imageURL: String
 }
 
 fragment OrderItemDetail on Product {
   name: String
-  shortName: String
+  slug: String
   price: Float
   imageURL: String
 }
