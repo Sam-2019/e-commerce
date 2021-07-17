@@ -1,4 +1,14 @@
-input CreateUser {
+interface User {
+  username: String
+  firstName: String
+  lastName: String
+  email: EmailAddress
+  photoURL: String
+  phoneNumber: Int
+  verified: Boolean
+}
+
+input Signup {
   username: String
   firstName: String
   lastName: String
@@ -7,31 +17,48 @@ input CreateUser {
   phoneNumber: Int
 }
 
+interface Product {
+  name: String
+  slug: String
+  price: Float
+  imageURL: String
+  description: Markdown
+}
+
 input AddProduct {
   name: String
   slug: String
   price: Float
   imageURL: String
-  quantity: Int
-  detail: String
   description: Markdown
+  quantity: Int
+  author: String
 }
 
 input AddCart {
+  userID: ID
   productID: ID
   quantity: Int
 }
 
 input AddWishList {
+  userID: ID
   productID: ID
 }
 
 input AddOrder {
-  products: [ID]
+  userID: ID
+  productID: [ID]
   paymentID: ID
   deliveryID: ID
   orderNumber: Int
   orderValue: Float
+}
+
+interface Review {
+  review: Markdown
+  rating: Float
+  createdAt: String
 }
 
 input AddReview {
@@ -45,15 +72,31 @@ input Login {
   password: String
 }
 
-input AddLocation {
-  location: String
+interface Location {
+  name: String
   fee: Float
+}
+
+input AddLocation {
+  name: String
+  fee: Float
+}
+
+interface Payment {
+  method: PaymentMethod
+  status: Status
+  phoneNumber: Int
 }
 
 input AddPayment {
   method: PaymentMethod
-  status: StatusType
+  status: Status
   phoneNumber: Int
+}
+
+interface Delivery {
+  address: DigitalAddress
+  landmark: String
 }
 
 input AddDelivery {
