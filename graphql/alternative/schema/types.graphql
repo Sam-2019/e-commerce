@@ -1,67 +1,83 @@
 type UserDetail implements User {
-  userID: ID
-  userName: String
+  id: ID
+  username: String
   firstName: String
   lastName: String
   email: EmailAddress
   photoURL: String
   phoneNumber: Int
-  verified: Verification
-  cart: [Cart]
-  order: [Order]
-  wishlist: [WishList]
-  review: [Review]
+  verified: Boolean
+  cart: [CartItem]
+  order: [OrderItem]
+  wishlist: [WishListItem]
+  review: [ReviewItem]
+}
+
+type SignupPayload {
+  error: ErrorType
+  user: UserDetail
 }
 
 type ProductDetail implements Product {
-  productID: ID
+  id: ID
   name: String
-  shortName: String
+  slug: String
   price: Float
   imageURL: String
+  description: Markdown
   quantity: Int
   author: String
-  description: Markdown
   rating: Float
-  review: [Review]
+  review: [ReviewItem]
+}
+
+type AddProductPayload {
+  error: ErrorType
+  product: ProductDetail
 }
 
 type Cart {
-  cartID: ID
+  id: ID
   userID: ID
-  productID: Product
-  price: Float
+  productID: ID
   quantity: Int
 }
 
-type CartItem implements Product {
-  cartID: ID
+type CartItem {
+  id: ID
   quantity: Int
-  productID: ID
-  name: String
-  shortName: String
-  price: Float
-  imageURL: String
+  product: Product
+}
+
+type AddCartPayload {
+  error: ErrorType
+  cart: Cart
 }
 
 type WishList {
-  wishlistID: ID
+  id: ID
   userID: ID
   productID: ID
 }
 
 type WishListItem implements Product {
-  wishlistID: ID
+  id: ID
   name: String
-  shortName: String
+  slug: String
   price: Float
   imageURL: String
+  description: Markdown
+}
+
+type AddWishListPayload {
+  error: ErrorType
+  wishlist: WishList
 }
 
 type Order {
-  orderID: ID
+  id: ID
   userID: ID
-  products: [ProductDetail]
+  productID: [ID]
   paymentID: ID
   deliveryID: ID
   orderNumber: Int
@@ -70,17 +86,23 @@ type Order {
 }
 
 type OrderItem implements Product {
-  orderItemID: ID
+  id: ID
   name: String
-  shortName: String
+  slug: String
   price: Float
   imageURL: String
   quantity: Int
   status: Status
+  description: Markdown
 }
 
-type ReviewDetail implements Review {
-  reviewID: ID
+type AddOrderPayload {
+  error: ErrorType
+  order: Order
+}
+
+type ReviewItem implements Review {
+  id: ID
   user: User
   productID: ID
   review: Markdown
@@ -88,18 +110,44 @@ type ReviewDetail implements Review {
   createdAt: String
 }
 
+type AddReviewPayload {
+  error: ErrorType
+  review: ReviewItem
+}
+
+type AuthenticationData {
+  userID: ID
+  token: String
+  tokenExpiration: Int
+}
+
+type LoginPayload {
+  error: ErrorType
+  user: AuthenticationData
+}
+
 type LocationDetail implements Location {
-  locationID: ID
-  disable: Boolean
+  id: ID
+  disabled: Boolean
   name: String
   fee: Float
 }
 
+type AddLocationPayload {
+  location: LocationDetail
+  error: ErrorType
+}
+
 type PaymentDetail implements Payment {
-  paymentID: ID
+  id: ID
   method: PaymentMethod
   status: Status
   phoneNumber: Int
+}
+
+type AddPaymentPayload {
+  error: ErrorType
+  payment: PaymentDetail
 }
 
 type Cash {
@@ -113,10 +161,15 @@ type MobileMoney {
 }
 
 type DeliveryDetail implements Delivery {
-  deliveryID: ID
+  id: ID
   locationID: ID
   address: DigitalAddress
   landmark: String
+}
+
+type AddDeliveryPayload {
+  error: ErrorType
+  delivery: DeliveryDetail
 }
 
 type Pagination {
@@ -124,8 +177,6 @@ type Pagination {
   products: [ProductDetail]
 }
 
-type AuthenticationData {
-  userID: ID
-  token: String
-  tokenExpiration: Int
+type ErrorType {
+  message: String
 }
