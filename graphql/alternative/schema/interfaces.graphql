@@ -5,7 +5,7 @@ interface User {
   email: EmailAddress
   photoURL: String
   phoneNumber: Int
-  verified: Verification
+  verified: Boolean
 }
 
 interface Product {
@@ -13,6 +13,7 @@ interface Product {
   slug: String
   price: Float
   imageURL: String
+  description: Markdown
 }
 
 interface Review {
@@ -26,15 +27,13 @@ interface Location {
   fee: Float
 }
 
-  interface Payment {
-    method: PaymentMethod
-    status: Status
-    phoneNumber: Int
-
-  }
+interface Payment {
+  method: PaymentMethod
+  status: Status
+  phoneNumber: Int
+}
 
 interface Delivery {
   address: DigitalAddress
   landmark: String
 }
-
