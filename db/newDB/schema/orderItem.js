@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const OrderItemSchema = new Schema({
-  user: {
+  userID: {
     type: Schema.Types.ObjectId,
     ref: "User",
   },
@@ -10,11 +10,10 @@ const OrderItemSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Order",
   },
-  product: {
+  productID: {
     type: Schema.Types.ObjectId,
     ref: "Product",
   },
-
   quantity: {
     type: String,
   },
