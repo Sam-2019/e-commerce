@@ -5,7 +5,7 @@ const ProductSchema = new Schema({
   name: {
     type: String,
   },
-  shortName: {
+  slug: {
     type: String,
     lowercase: true,
   },
