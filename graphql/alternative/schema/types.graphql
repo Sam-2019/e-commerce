@@ -101,19 +101,27 @@ type AddOrderPayload {
   order: Order
 }
 
-type ReviewItem implements Review {
-  id: ID
-  user: User
-  productID: ID
-  review: Markdown
-  rating: Float
-  createdAt: String
+  type Review {
+    id: ID
+    userID: ID
+    review: Markdown
+    rating: Float
+    created_at: String
+  }
+
+type ReviewItem {
+    id: ID
+    user: User
+    productID: ID
+    review: Markdown
+    rating: Float
+    created_at: String
 }
 
-type AddReviewPayload {
-  error: ErrorType
-  review: ReviewItem
-}
+  type AddReviewPayload {
+    error: ErrorType
+    review: Review
+    }
 
 type AuthenticationData {
   userID: ID
