@@ -16,15 +16,15 @@ interface Product {
   description: Markdown
 }
 
+interface Location {
+  name: String
+  fee: Float
+}
+
 interface Review {
   review: Markdown
   rating: Float
   createdAt: String
-}
-
-interface Location {
-  name: String
-  fee: Float
 }
 
 interface Payment {
