@@ -3,11 +3,11 @@ const Schema = mongoose.Schema;
 
 const WishListSchema = new Schema(
   {
-    user: {
+    userID: {
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    product: {
+    productID: {
       type: Schema.Types.ObjectId,
       ref: "Product",
     },
