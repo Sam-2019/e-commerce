@@ -3,21 +3,21 @@ const Schema = mongoose.Schema;
 
 const OrderSchema = new Schema(
   {
-    user: {
+    userID: {
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    products: [
+    productID: [
       {
         type: Schema.Types.ObjectId,
         ref: "Product",
       },
     ],
-    payment: {
+    paymentID: {
       type: Schema.Types.ObjectId,
       ref: "Payment",
     },
-    delivery: {
+    deliveryID: {
       type: Schema.Types.ObjectId,
       ref: "Delivery",
     },
