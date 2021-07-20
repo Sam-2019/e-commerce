@@ -8,14 +8,8 @@ const PaymentSchema = new Schema({
   status: {
     type: String,
   },
-  momo_name: {
-    type: String,
-  },
-  momo_number: {
-    type: String,
-  },
-  momo_transaction_id: {
-    type: String,
+  phoneNumber: {
+    type: Number,
   },
 });
 
