@@ -3,11 +3,11 @@ const Schema = mongoose.Schema;
 
 const ReviewSchema = new Schema(
   {
-    user: {
+    userID: {
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    product: {
+    productID: {
       type: Schema.Types.ObjectId,
       ref: "Product",
     },
@@ -15,7 +15,7 @@ const ReviewSchema = new Schema(
       type: Number,
       default: 0
     },
-    text: {
+    review: {
       type: String,
     },
   },
