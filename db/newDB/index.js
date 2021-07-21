@@ -7,7 +7,8 @@ const ReviewSchema = require("./schema/review");
 const OrderItemSchema = require("./schema/orderItem");
 const LocationSchema = require("./schema/location");
 const PaymentSchema = require("./schema/payment");
-const DeliverySchema = require("./schema/delivey");
+const DeliverySchema = require("./schema/delivery");
+const EMoneySchema = require("./schema/e-money");
 
 const model = {
   ProductSchema,
@@ -20,6 +21,7 @@ const model = {
   LocationSchema,
   PaymentSchema,
   DeliverySchema,
+  EMoneySchema,
 };
 
 module.exports = model;
