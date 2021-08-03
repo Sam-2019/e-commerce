@@ -250,8 +250,8 @@ module.exports = buildSchema(
   }
 
   type AddLocationPayload {
-    location: LocationDetail
     error: ErrorType
+    location: LocationDetail
   }
 
   interface Payment {
@@ -318,7 +318,7 @@ module.exports = buildSchema(
     message: String
   }
 
-type Query {
+  type Query {
 
   searchProductByName(name: String): [Product]
   searchProductByAuthor(author: String): [Product]

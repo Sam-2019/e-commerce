@@ -142,8 +142,8 @@ type LocationDetail implements Location {
 }
 
 type AddLocationPayload {
-  location: LocationDetail
   error: ErrorType
+  location: LocationDetail
 }
 
 type PaymentDetail implements Payment {
